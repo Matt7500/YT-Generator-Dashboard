@@ -1,0 +1,477 @@
+@font-face {
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.home {
+    height: calc(100vh - 60px);
+    width: 100%;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    box-sizing: border-box;
+}
+
+.home-content {
+    background-color: #f0f2f5;
+    height: 100%;
+    width: 100%;
+    padding: 2rem 6rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+    position: relative;
+    color: #333;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.dashboard-header h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    height: 100%;
+    overflow: hidden;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.dashboard-card h2 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    color: #1a1a1a;
+}
+
+/* Stats Card Styling */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2563eb;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+/* Activity Card Styling */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.activity-time {
+    font-size: 0.875rem;
+    color: #666;
+    width: 80px;
+}
+
+.activity-text {
+    margin-left: 1rem;
+    color: #333;
+}
+
+.refresh-btn {
+    padding: 0.625rem 1.25rem;
+    background-color: #f8fafc;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.refresh-btn:hover {
+    background-color: #f1f5f9;
+    color: #1e293b;
+}
+
+.channels-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 3rem;
+    flex: 1;
+}
+
+.channel-card {
+    background: white;
+    border-radius: 8px;
+    padding: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: fit-content;
+}
+
+.channel-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.channel-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.channel-info {
+    width: 100%;
+}
+
+.channel-name {
+    font-size: 0.95rem;
+    margin: 0;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.channel-handle {
+    font-size: 0.75rem;
+    color: #666;
+    line-height: 1.2;
+}
+
+.channel-stats {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 0.25rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.1rem 0;
+}
+
+.stat-value {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: #2563eb;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+.channel-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0;
+    width: 100%;
+}
+
+.settings-btn, .create-video-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 50%;
+    text-align: center;
+}
+
+.settings-btn {
+    background: none;
+    border: 1px solid #2563eb;
+    color: #2563eb;
+    padding: 0.5rem 1rem;
+}
+
+.create-video-btn {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+}
+
+.settings-btn:hover {
+    background-color: #f0f5ff;
+}
+
+.create-video-btn:hover {
+    background-color: #1d4ed8;
+}
+
+.channel-analytics {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.performance-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.metric-value {
+    font-weight: 600;
+    color: #16a34a;
+}
+
+.latest-video {
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+}
+
+.video-preview {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.video-thumbnail {
+    width: 100px;
+    height: 56px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.video-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.video-title {
+    font-weight: 500;
+}
+
+.video-stats {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.header-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    height: 40px;
+}
+
+/* Header button styles */
+.add-channel-btn, .edit-channels-btn {
+    height: 40px;
+    padding: 0 30px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+}
+
+.add-channel-btn {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+}
+
+.add-channel-btn:hover {
+    background-color: #1d4ed8;
+}
+
+.edit-channels-btn {
+    background-color: white;
+    color: #2563eb;
+    border: 1px solid #2563eb;
+}
+
+.edit-channels-btn:hover {
+    background-color: #f0f5ff;
+}
+
+/* Bottom action button */
+.bottom-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    padding: 1rem 0;
+}
+
+.create-all-videos-btn {
+    height: 48px;
+    padding: 0 32px;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.975rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.create-all-videos-btn:hover {
+    background-color: #1d4ed8;
+}
+
+/* Focus states */
+.header-actions button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(37, 99, 235, 0.2);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.channels-list {
+    margin-top: 1rem;
+}
+
+.channel-list-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.channel-list-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 1rem;
+}
+
+.remove-channel-btn {
+    margin-left: auto;
+    padding: 0.5rem 1rem;
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.remove-channel-btn:hover {
+    background-color: #b91c1c;
+}
+
+.add-channel-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+}
+
+.add-channel-btn:hover {
+    background-color: #1d4ed8;
+}
+
+
