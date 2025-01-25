@@ -18,7 +18,7 @@
     background-color: #f0f2f5;
     height: 100%;
     width: 100%;
-    padding: 2rem 6rem;
+    padding: 2rem 12rem;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -46,13 +46,6 @@
     gap: 2rem;
     height: 100%;
     overflow: hidden;
-}
-
-.dashboard-card {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .dashboard-card h2 {
@@ -112,25 +105,12 @@
     color: #333;
 }
 
-.refresh-btn {
-    padding: 0.625rem 1.25rem;
-    background-color: #f8fafc;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-}
-
-.refresh-btn:hover {
-    background-color: #f1f5f9;
-    color: #1e293b;
-}
-
 .channels-grid {
+    justify-content: center;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    max-width: calc(350px * 4 + 3rem * 3);
+    margin: 0 auto;
     gap: 3rem;
     flex: 1;
 }
@@ -138,7 +118,7 @@
 .channel-card {
     background: white;
     border-radius: 8px;
-    padding: 0.5rem;
+    padding: 2rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
@@ -214,11 +194,10 @@
     align-items: center;
     margin-top: 0.5rem;
     padding: 0.5rem 0;
-    width: 100%;
 }
 
 .settings-btn, .create-video-btn {
-    padding: 0.25rem 0.5rem;
+    padding: 0.75rem 1rem;
     font-size: 0.75rem;
     border-radius: 4px;
     cursor: pointer;
@@ -230,14 +209,12 @@
     background: none;
     border: 1px solid #2563eb;
     color: #2563eb;
-    padding: 0.5rem 1rem;
 }
 
 .create-video-btn {
     background-color: #2563eb;
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
 }
 
 .settings-btn:hover {
@@ -320,7 +297,7 @@
 /* Header button styles */
 .add-channel-btn, .edit-channels-btn {
     height: 40px;
-    padding: 0 30px;
+    padding: 0 40px;
     border-radius: 6px;
     font-size: 0.875rem;
     font-weight: 500;

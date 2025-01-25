@@ -2,10 +2,7 @@ import { useState } from 'react'
 import '../css/Home.css'
 
 function Home() {
-  const [showEditModal, setShowEditModal] = useState(false)
-
-  // Reduced to 4 channels
-  const channels = [
+  const [channels, setChannels] = useState([
     {
       id: 1,
       name: "Tech Reviews",
@@ -34,15 +31,15 @@ function Home() {
       views: "4.8M"
     },
     {
-      id: 4,
-      name: "Fitness Journey",
-      handle: "@fitnessjourney",
-      avatar: "placeholder-avatar.jpg",
-      subscribers: "180K",
-      videos: 250,
-      views: "1.5M"
-    }
-  ]
+        id: 3,
+        name: "Cooking Masters",
+        handle: "@cookingmasters",
+        avatar: "placeholder-avatar.jpg",
+        subscribers: "750K",
+        videos: 320,
+        views: "4.8M"
+      },
+  ])
 
   return (
     <div className="home">
@@ -96,30 +93,6 @@ function Home() {
             <div className="bottom-actions">
                 <button className="create-all-videos-btn">Create for All</button>
             </div>
-
-            {/* Edit Channels Modal */}
-            {showEditModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <header className="modal-header">
-                            <h2>Manage Channels</h2>
-                            <button className="close-btn" onClick={() => setShowEditModal(false)}>×</button>
-                        </header>
-                        <div className="modal-body">
-                            <button className="add-channel-btn">Add New Channel</button>
-                            <div className="channels-list">
-                                {channels.map(channel => (
-                                    <div className="channel-list-item" key={channel.id}>
-                                        <img src={channel.avatar} alt={channel.name} className="channel-list-avatar" />
-                                        <span>{channel.name}</span>
-                                        <button className="remove-channel-btn">Remove</button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     </div>
   )

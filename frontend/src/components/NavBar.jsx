@@ -4,10 +4,9 @@ function NavBar() {
     return (
         <div className="navbar">
             <h1>NavBar</h1>
-            <div className="nav-links">
-                <a href="/">Home</a>
-                <a href="/about">About</a>
-                <a href="/contact">Contact</a>
+            <div className="navbar-buttons">
+                <button className="main-settings-btn">Settings</button>
+                <button className="logout-btn">Logout</button>
             </div>
         </div>
     )
