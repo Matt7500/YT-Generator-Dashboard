@@ -6,12 +6,18 @@ const NavBar = ({ isAuthenticated, isAdmin, onLogout }) => {
         <nav className="navbar">
             <div className="navbar-brand">
                 <Link to="/">YT Generator</Link>
+                {isAdmin && <span className="admin-badge">Admin</span>}
             </div>
             <div className="navbar-menu">
                 {isAuthenticated ? (
                     <>
-                        <Link to="/" className="nav-link">Dashboard</Link>
-                        {isAdmin && <span className="admin-badge">Admin</span>}
+                        <Link to="/dashboard" className="nav-link">Dashboard</Link>
+                        <Link to="/settings" className="nav-link">Settings</Link>
+                        {isAdmin && (
+                            <Link to="/admin" className="nav-link admin-link">
+                                Admin Dashboard
+                            </Link>
+                        )}
                         <button onClick={onLogout} className="logout-button">
                             Logout
                         </button>

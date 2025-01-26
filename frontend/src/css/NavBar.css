@@ -18,6 +18,9 @@
 .navbar-brand {
     font-size: 1.5rem;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .navbar-brand a {
@@ -42,11 +45,24 @@
     color: #007bff;
 }
 
+.admin-link {
+    background-color: #28a745;
+    color: white !important;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.3s !important;
+}
+
+.admin-link:hover {
+    background-color: #218838;
+    color: white !important;
+}
+
 .logout-button {
     background-color: transparent;
     border: 1px solid #dc3545;
     color: #dc3545;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 2rem;
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
@@ -100,5 +116,6 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    margin-left: 0.5rem;
 }
 

@@ -1,0 +1,115 @@
+.admin-dashboard {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: 100px;
+}
+
+.admin-dashboard h1 {
+    margin-bottom: 2rem;
+    color: #1a1a1a;
+}
+
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.stat-card h3 {
+    color: #666;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card p {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2563eb;
+}
+
+.users-table-container {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.users-table-container h2 {
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.users-table th {
+    font-weight: 500;
+    color: #666;
+    background: #f8f9fa;
+}
+
+.role-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.role-badge.admin {
+    background-color: #28a745;
+    color: white;
+}
+
+.role-badge.user {
+    background-color: #6c757d;
+    color: white;
+}
+
+.view-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #2563eb;
+    background: none;
+    color: #2563eb;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.view-btn:hover {
+    background: #2563eb;
+    color: white;
+}
+
+.admin-dashboard.loading,
+.admin-dashboard.error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    font-size: 1.125rem;
+    color: #666;
+}
+
+.admin-dashboard.error {
+    color: #dc2626;
+} 
