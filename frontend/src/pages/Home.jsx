@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Dialog } from '@headlessui/react'
 import '../css/Home.css'
+import accountImage from '../assets/account-image.jpg'
 
 function Home() {
   const [channels, setChannels] = useState([
@@ -8,7 +9,7 @@ function Home() {
       id: 1,
       name: "Tech Reviews",
       handle: "@techreviews",
-      avatar: "placeholder-avatar.jpg",
+      avatar: accountImage,
       subscribers: "250K",
       videos: 420,
       views: "2.1M"
@@ -17,7 +18,7 @@ function Home() {
       id: 2,
       name: "Gaming Central",
       handle: "@gamingcentral",
-      avatar: "placeholder-avatar.jpg",
+      avatar: accountImage,
       subscribers: "500K",
       videos: 890,
       views: "5.2M"
@@ -26,7 +27,7 @@ function Home() {
       id: 3,
       name: "Cooking Masterss",
       handle: "@cookingmasterss",
-      avatar: "placeholder-avatar.jpg",
+      avatar: accountImage,
       subscribers: "751K",
       videos: 321,
       views: "4.6M"
@@ -35,7 +36,7 @@ function Home() {
         id: 4,
         name: "Cooking Masters",
         handle: "@cookingmasters",
-        avatar: "placeholder-avatar.jpg",
+        avatar: accountImage,
         subscribers: "750K",
         videos: 320,
         views: "4.8M"
@@ -64,10 +65,10 @@ function Home() {
 
   const addNewChannel = () => {
     const newChannel = {
-      id: channels.length + 1, // This is temporary, in a DB this would be handled differently
+      id: channels.length + 1,
       name: "New Channel",
       handle: "@newchannel",
-      avatar: "placeholder-avatar.jpg",
+      avatar: accountImage,
       subscribers: "0",
       videos: 0,
       views: "0"
@@ -81,11 +82,11 @@ function Home() {
         <header className="dashboard-header">
           <h1>Channel Manager</h1>
           <div className="header-actions">
+            <button className="create-all-videos-btn">Create for All</button>
             <button 
               type="button"
               onClick={() => setIsOpen(true)} 
-              className="edit-channels-btn"
-            >
+              className="edit-channels-btn">
               Edit Channels
             </button>
           </div>
@@ -161,12 +162,6 @@ function Home() {
               <div className="modal-content confirm-dialog">
                 <Dialog.Title className="modal-title">
                   Confirm Deletion
-                  <button 
-                    onClick={() => setIsConfirmOpen(false)}
-                    className="close-modal-btn close-icon"
-                    aria-label="Close">
-                    ×
-                  </button>
                 </Dialog.Title>
                 <div className="modal-body">
                   <p>Remove {selectedChannels.length} selected channel{selectedChannels.length > 1 ? 's' : ''}?</p>
@@ -175,7 +170,7 @@ function Home() {
                 <div className="modal-footer">
                   <button 
                     onClick={() => setIsConfirmOpen(false)}
-                    className="close-modal-btn">
+                    className="close-btn">
                     Cancel
                   </button>
                   <button 
@@ -225,10 +220,6 @@ function Home() {
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="bottom-actions">
-          <button className="create-all-videos-btn">Create for All</button>
         </div>
       </div>
     </div>

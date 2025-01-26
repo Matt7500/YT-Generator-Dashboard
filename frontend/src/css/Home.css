@@ -12,19 +12,19 @@
     top: 60px;
     left: 0;
     box-sizing: border-box;
+    overflow-y: auto;
 }
 
 .home-content {
     background-color: #f0f2f5;
-    height: 100%;
     width: 100%;
-    padding: 2rem 12rem;
+    padding: 2rem 2rem;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     box-sizing: border-box;
     position: relative;
     color: #333;
+    min-height: 100%;
 }
 
 .dashboard-header {
@@ -32,6 +32,10 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 3rem;
+    max-width: calc(350px * 4 + 3rem * 3);
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
 }
 
 .dashboard-header h1 {
@@ -113,12 +117,13 @@
     margin: 0 auto;
     gap: 3rem;
     flex: 1;
+    margin-bottom: 2rem;
 }
 
 .channel-card {
     background: white;
-    border-radius: 8px;
-    padding: 0.5rem;
+    border-radius: 14px;
+    padding: 2rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
@@ -287,15 +292,8 @@
     color: #666;
 }
 
-.header-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-    height: 40px;
-}
-
 /* Header button styles */
-.add-channel-btn, .edit-channels-btn {
+.create-all-videos-btn, .edit-channels-btn {
     height: 40px;
     padding: 0 40px;
     border-radius: 6px;
@@ -310,13 +308,13 @@
     margin: 0;
 }
 
-.add-channel-btn {
+.create-all-videos-btn {
     background-color: #2563eb;
     color: white;
     border: none;
 }
 
-.add-channel-btn:hover {
+.create-all-videos-btn:hover {
     background-color: #1d4ed8;
 }
 
@@ -330,29 +328,14 @@
     background-color: #f0f5ff;
 }
 
-/* Bottom action button */
-.bottom-actions {
-    display: flex;
-    justify-content: center;
-    margin-top: 2rem;
-    padding: 1rem 0;
-}
-
-.create-all-videos-btn {
-    height: 48px;
-    padding: 0 32px;
-    background-color: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.975rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
 .create-all-videos-btn:hover {
     background-color: #1d4ed8;
+}
+
+.header-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
 }
 
 /* Focus states */
@@ -473,7 +456,7 @@
   position: fixed;
   inset: 0;
   z-index: 50;
-  overflow-y: auto;
+  overflow-y: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -483,6 +466,7 @@
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
 }
 
 .modal-container {
@@ -547,8 +531,13 @@
   background-color: #f0f0f0;
 }
 
-.fixed {
-  position: fixed;
+.close-btn {
+  background-color: #e6e6e6;
+}
+
+.close-btn:hover {
+    background-color: #b4b4b4;
+    color: #ffffff;
 }
 
 .inset-0 {
@@ -583,10 +572,40 @@
   background-color: #f0f9ff;
 }
 
+/* Custom Checkbox Styling */
 .channel-checkbox {
-  width: 1.2rem;
-  height: 1.2rem;
-  cursor: pointer;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #2563eb;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+    background-color: white !important;
+    margin: 0;
+    padding: 0;
+    transition: all 0.2s ease;
+}
+
+.channel-checkbox:checked {
+    background-color: #2563eb !important;
+    border-color: #2563eb;
+}
+
+.channel-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    display: block;
 }
 
 .channel-list-avatar {
@@ -678,7 +697,7 @@
 
 .confirm-dialog .modal-footer {
     flex-direction: row;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 0.75rem;
     height: auto;
     padding: 1rem 0 0 0;
@@ -688,42 +707,69 @@
 
 .confirm-dialog .modal-footer button {
     width: auto;
-    min-width: 100px;
+    min-width: 120px;
     height: 38px;
-    padding: 0 1rem;
+    padding: 0 1.5rem;
     font-size: 0.875rem;
     border-radius: 6px;
+    flex: 0 1 auto;
 }
 
-.confirm-dialog .modal-footer .close-modal-btn {
+/* Make both buttons the same width */
+.confirm-dialog .modal-footer .close-modal-btn,
+.confirm-dialog .modal-footer .remove-selected-btn {
+    width: 160px;
     position: static;
     transform: none;
-    background-color: #f3f4f6;
-    color: #1a1a1a;
-    font-size: 0.875rem;
-    width: auto;
 }
 
-.confirm-dialog .modal-footer .close-modal-btn:hover {
-    background-color: #e5e7eb;
+/* Webkit browsers (Chrome, Safari, newer Edge) */
+.channels-list::-webkit-scrollbar {
+    width: 8px;
 }
 
-.confirm-dialog .modal-footer .remove-selected-btn {
-    background-color: #dc2626;
-    margin: 0;
+.channels-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
 }
 
-.confirm-dialog .close-modal-btn.close-icon {
-    position: absolute;
-    right: 1rem;
-    top: 1.25rem;
-    width: 32px;
-    height: 32px;
-    color: #6b7280;
-    background: none;
-    font-size: 20px;
+.channels-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+    border: 2px solid #f1f1f1;
 }
 
-.confirm-dialog .close-modal-btn.close-icon:hover {
-    background-color: #f3f4f6;
+.channels-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Firefox */
+.channels-list {
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+/* Apply the same styles to modal-body */
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+    border: 2px solid #f1f1f1;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.modal-body {
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 #f1f1f1;
 }
