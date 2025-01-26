@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog } from '@headlessui/react'
 import '../css/Home.css'
 import accountImage from '../assets/account-image.jpg'
 
-function Home() {
+function Dashboard() {
   const [channels, setChannels] = useState([
     {
       id: 1,
@@ -33,20 +33,40 @@ function Home() {
       views: "4.6M"
     },
     {
-        id: 4,
-        name: "Cooking Masters",
-        handle: "@cookingmasters",
-        avatar: accountImage,
-        subscribers: "750K",
-        videos: 320,
-        views: "4.8M"
-      },
+      id: 4,
+      name: "Cooking Masters",
+      handle: "@cookingmasters",
+      avatar: accountImage,
+      subscribers: "750K",
+      videos: 320,
+      views: "4.8M"
+    },
   ])
 
   const [isOpen, setIsOpen] = useState(false)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [selectedChannels, setSelectedChannels] = useState([])
-  const [isVisible, setIsVisible] = useState(true);
+  const [removingChannels, setRemovingChannels] = useState([])
+  const [newChannelId, setNewChannelId] = useState(null)
+  const [isClosing, setIsClosing] = useState(false)
+  const [isConfirmClosing, setIsConfirmClosing] = useState(false)
+
+  const closeMainModal = () => {
+    setIsClosing(true)
+    setTimeout(() => {
+      setIsClosing(false)
+      setIsOpen(false)
+      setSelectedChannels([])
+    }, 200)
+  }
+
+  const closeConfirmModal = () => {
+    setIsConfirmClosing(true)
+    setTimeout(() => {
+      setIsConfirmClosing(false)
+      setIsConfirmOpen(false)
+    }, 200)
+  }
 
   const toggleChannelSelection = (channelId) => {
     setSelectedChannels(prev => 
@@ -57,15 +77,21 @@ function Home() {
   }
 
   const removeSelectedChannels = () => {
-    setChannels(prev => prev.filter(channel => !selectedChannels.includes(channel.id)))
-    setSelectedChannels([])
-    setIsConfirmOpen(false)
-    setIsOpen(false)
+    setRemovingChannels(selectedChannels)
+    
+    setTimeout(() => {
+      setChannels(prev => prev.filter(channel => !selectedChannels.includes(channel.id)))
+      setSelectedChannels([])
+      setRemovingChannels([])
+      closeConfirmModal()
+      closeMainModal()
+    }, 300)
   }
 
   const addNewChannel = () => {
+    const id = Date.now()
     const newChannel = {
-      id: channels.length + 1,
+      id,
       name: "New Channel",
       handle: "@newchannel",
       avatar: accountImage,
@@ -74,6 +100,9 @@ function Home() {
       views: "0"
     }
     setChannels(prev => [...prev, newChannel])
+    setNewChannelId(id)
+    setTimeout(() => setNewChannelId(null), 300)
+    closeMainModal()
   }
 
   return (
@@ -93,17 +122,19 @@ function Home() {
         </header>
 
         {isOpen && (
-          <Dialog as="div" open={isOpen} onClose={() => setIsOpen(false)} className="dialog-overlay">
+          <Dialog 
+            as="div" 
+            open={isOpen} 
+            onClose={closeMainModal}
+            className={`dialog-overlay ${isClosing ? 'data-closing' : ''}`}
+          >
             <div className="modal-backdrop" />
             <div className="modal-container">
               <div className="modal-content">
                 <Dialog.Title className="modal-title">
                   Edit Channels
                   <button 
-                    onClick={() => {
-                      setIsOpen(false)
-                      setSelectedChannels([])
-                    }}
+                    onClick={closeMainModal}
                     className="close-modal-btn"
                     aria-label="Close">
                     ×
@@ -156,7 +187,12 @@ function Home() {
         )}
 
         {isConfirmOpen && (
-          <Dialog as="div" open={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} className="dialog-overlay">
+          <Dialog 
+            as="div" 
+            open={isConfirmOpen} 
+            onClose={closeConfirmModal}
+            className={`dialog-overlay ${isConfirmClosing ? 'data-closing' : ''}`}
+          >
             <div className="modal-backdrop" />
             <div className="modal-container">
               <div className="modal-content confirm-dialog">
@@ -169,7 +205,7 @@ function Home() {
                 </div>
                 <div className="modal-footer">
                   <button 
-                    onClick={() => setIsConfirmOpen(false)}
+                    onClick={closeConfirmModal}
                     className="close-btn">
                     Cancel
                   </button>
@@ -186,7 +222,12 @@ function Home() {
 
         <div className="channels-grid">
           {channels.map(channel => (
-            <div className="channel-card" key={`channel-${channel.id}`}>
+            <div 
+              className={`channel-card ${
+                removingChannels.includes(channel.id) ? 'removing' : ''
+              } ${newChannelId === channel.id ? 'new' : ''}`}
+              key={`channel-${channel.id}`}
+            >
               <div className="channel-header">
                 <img 
                   src={channel.avatar}
@@ -226,4 +267,4 @@ function Home() {
   )
 }
 
-export default Home 
+export default Dashboard 

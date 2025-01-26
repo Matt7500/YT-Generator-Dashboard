@@ -1,7 +1,6 @@
 #root {
-  max-width: 1280px;
+  width: 100vw;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
@@ -39,4 +38,20 @@
 
 .read-the-docs {
   color: #888;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.main-content {
+  margin-top: 80px; /* Same as navbar height */
+  flex: 1;
+  width: 100%;
+  height: calc(100vh - 80px); /* Viewport height minus navbar height */
+  overflow-y: auto;
+  background-color: #f5f5f5;
 }
