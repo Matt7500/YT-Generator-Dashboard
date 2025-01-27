@@ -8,6 +8,7 @@
     "dev": "nodemon src/app.js",
     "seed": "node src/scripts/seed.js",
     "init-db": "node src/scripts/init-db.js",
+    "migrate": "node src/scripts/run-migrations.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -15,6 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "csrf-csrf": "^3.1.0",
@@ -23,8 +25,10 @@
     "express-rate-limit": "^7.5.0",
     "express-session": "^1.18.1",
     "express-validator": "^7.2.1",
+    "googleapis": "^144.0.0",
     "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
     "nodemailer": "^6.10.0",
     "pg": "^8.11.3",
     "winston": "^3.17.0"

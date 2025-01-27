@@ -1,4 +1,5 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const pool = require('../config/database');
 
 class User {
@@ -10,12 +11,18 @@ class User {
                     email, 
                     password_hash, 
                     role,
-                    is_verified
+                    is_verified,
+                    settings
                 )
-                VALUES ($1, $2, $3, true)
+                VALUES ($1, $2, $3, true, $4)
                 RETURNING id, email, role;
             `;
-            const values = [email, passwordHash, role];
+            const defaultSettings = {
+                theme: 'light',
+                email_notifications: false,
+                two_factor_enabled: false
+            };
+            const values = [email, passwordHash, role, JSON.stringify(defaultSettings)];
             const result = await pool.query(query, values);
             return result.rows[0];
         } catch (error) {

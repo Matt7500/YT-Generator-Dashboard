@@ -55,10 +55,10 @@ const Login = ({ setIsAuthenticated, setIsAdmin }) => {
       <div className="login-box">
         <h1>Welcome Back</h1>
         <p className="subtitle">Please enter your credentials to sign in</p>
-        
-        <form onSubmit={handleSubmit}>
-          {error && <div className="error-message">{error}</div>}
-          
+        <div className="login-form">
+          <form onSubmit={handleSubmit} >
+            {error && <div className="error-message">{error}</div>}
+            
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -111,7 +111,8 @@ const Login = ({ setIsAuthenticated, setIsAdmin }) => {
           >
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
-        </form>
+          </form>
+        </div>
 
         <p className="signup-prompt">
           Don't have an account?{' '}

@@ -13,16 +13,26 @@ const Settings = ({ isAuthenticated }) => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPasswordForm, setShowPasswordForm] = useState(false);
     const [platformConnections, setPlatformConnections] = useState([]);
+    const [youtubeConnection, setYoutubeConnection] = useState(null);
 
     useEffect(() => {
         const fetchSettings = async () => {
+            if (!isAuthenticated) {
+                setLoading(false);
+                return;
+            }
+
             try {
+                console.log('Fetching settings...');
                 const response = await api.get('/settings');
+                console.log('Settings response:', response.data);
                 setSettings(response.data);
                 
-                // Fetch platform connections
+                console.log('Fetching platform connections...');
                 const platformsResponse = await api.get('/settings/platforms');
+                console.log('Platforms response:', platformsResponse.data);
                 setPlatformConnections(platformsResponse.data);
+                setError(null);
             } catch (err) {
                 console.error('Error fetching settings:', err);
                 setError(err.response?.data?.message || 'Error fetching settings');
@@ -32,7 +42,22 @@ const Settings = ({ isAuthenticated }) => {
         };
 
         fetchSettings();
-    }, []);
+    }, [isAuthenticated]);
+
+    // A helper to log new platform states for debugging
+    const setPlatformConnectionsWithLog = (newConnections) => {
+        console.log('Setting platform connections:', {
+            current: platformConnections,
+            new: newConnections
+        });
+        setPlatformConnections(newConnections);
+    };
+
+    useEffect(() => {
+        const youtube = platformConnections.find(p => p.platform === 'youtube');
+        console.log('Detecting changes to platformConnections, found youtube:', youtube);
+        setYoutubeConnection(youtube);
+    }, [platformConnections]);
 
     const handlePasswordChange = async (e) => {
         e.preventDefault();
@@ -69,22 +94,206 @@ const Settings = ({ isAuthenticated }) => {
         }
     };
 
-    // Will be implemented later with YouTube API
-    const handleConnectYouTube = () => {
-        // Placeholder for YouTube OAuth flow
-        console.log('YouTube connection will be implemented later');
+    // Connect YouTube
+    const handleConnectYouTube = async () => {
+        try {
+            const response = await api.get('/auth/youtube/connect');
+            
+            // Position the popup roughly center screen
+            const width = 600;
+            const height = 600;
+            const left = (window.innerWidth - width) / 2;
+            const top = (window.innerHeight - height) / 2;
+
+            // Open the OAuth window
+            const authWindow = window.open(
+                response.data.authUrl,
+                'YouTube Authorization',
+                `width=${width},height=${height},left=${left},top=${top}`
+            );
+
+            // Refresh YouTube data after successful connection
+            const refreshYouTubeSection = async () => {
+                try {
+                    console.log('Refreshing YouTube section...');
+                    // Add a small delay to let the server store any new channels
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const resPlatforms = await api.get('/settings/platforms');
+                    console.log('Updated platform connections response:', resPlatforms.data);
+                    
+                    const newYoutubeConn = resPlatforms.data.find(p => p.platform === 'youtube');
+                    const oldYoutubeConn = platformConnections.find(p => p.platform === 'youtube');
+
+                    console.log('Comparing old/new YouTube connections:', {
+                        old: oldYoutubeConn,
+                        new: newYoutubeConn
+                    });
+
+                    if (newYoutubeConn) {
+                        setPlatformConnectionsWithLog(resPlatforms.data);
+                        setSuccessMessage('Channel connected successfully');
+                        setTimeout(() => setSuccessMessage(''), 5000);
+                    } else {
+                        console.log('No YouTube connection found after refresh');
+                    }
+                } catch (err) {
+                    console.error('Error refreshing YouTube section:', err);
+                    setError('Failed to refresh YouTube channels');
+                    setTimeout(() => setError(null), 5000);
+                }
+            };
+
+            // Handler for receiving messages from the popup
+            const handleCallback = async (event) => {
+                console.log('handleCallback triggered, event:', {
+                    data: event.data,
+                    origin: event.origin,
+                    locationOrigin: window.location.origin
+                });
+
+                try {
+                    // Check for an object message
+                    if (typeof event.data === 'object') {
+                        if (event.data.type === 'youtube_success') {
+                            console.log('Got youtube_success message:', event.data);
+                            // Close the popup
+                            if (authWindow && !authWindow.closed) {
+                                authWindow.close();
+                            }
+                            // Refresh channels
+                            await refreshYouTubeSection();
+                            return;
+                        }
+                    }
+
+                    // Check for a legacy "success" string
+                    if (event.data === 'success') {
+                        console.log('Received legacy success message');
+                        if (authWindow && !authWindow.closed) {
+                            authWindow.close();
+                        }
+                        await refreshYouTubeSection();
+                    } else if (event.data === 'error') {
+                        console.error('Received error message from OAuth flow');
+                        setError('Failed to connect YouTube account');
+                    } else {
+                        console.log('Received unknown message:', event.data);
+                    }
+                } catch (err) {
+                    console.error('YouTube callback error:', err);
+                    setError('Failed to connect YouTube account');
+                }
+            };
+
+            // Add message listener
+            window.addEventListener('message', handleCallback);
+
+            // Poll if the user closes the popup manually
+            const checkInterval = setInterval(async () => {
+                try {
+                    if (!authWindow || authWindow.closed) {
+                        console.log('Auth window closed, checking for updates...');
+                        clearInterval(checkInterval);
+                        await refreshYouTubeSection();
+                    }
+                } catch (err) {
+                    console.log('Error checking window status, clearing interval:', err);
+                    clearInterval(checkInterval);
+                    await refreshYouTubeSection();
+                }
+            }, 500);
+
+            // Cleanup removes the message listener if user leaves the page
+            return () => {
+                window.removeEventListener('message', handleCallback);
+                clearInterval(checkInterval);
+            };
+        } catch (err) {
+            console.error('YouTube connection error:', err);
+            setError('Failed to initiate YouTube connection');
+        }
     };
 
+    // Remove a single YouTube channel
+    const handleRemoveChannel = async (channelId) => {
+        try {
+            await api.delete(`/settings/youtube/channels/${channelId}`);
+            const refreshResponse = await api.get('/settings/platforms');
+            setPlatformConnections(refreshResponse.data);
+            setSuccessMessage('Channel removed successfully');
+        } catch (err) {
+            console.error('Failed to remove channel:', err);
+            setError('Failed to remove channel');
+        }
+    };
+
+    // Disconnect all YouTube channels
+    const handleDisconnectYouTube = async () => {
+        try {
+            await api.delete('/settings/platforms/youtube');
+            const refreshResponse = await api.get('/settings/platforms');
+            setPlatformConnections(refreshResponse.data);
+            setSuccessMessage('YouTube account disconnected successfully');
+        } catch (err) {
+            console.error('Failed to disconnect YouTube:', err);
+            setError('Failed to disconnect YouTube account');
+        }
+    };
+
+    const refreshPlatformConnections = async () => {
+        try {
+            const response = await api.get('/settings/platforms');
+            setPlatformConnectionsWithLog(response.data);
+            const newYoutubeConnection = response.data.find(p => p.platform === 'youtube');
+            setYoutubeConnection(newYoutubeConnection);
+        } catch (err) {
+            console.error('Error refreshing platform connections:', err);
+        }
+    };
+
+    // Handle redirects if not authenticated
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
 
+    // Loading state
     if (loading) {
-        return <div className="settings-page loading">Loading...</div>;
+        return (
+            <div className="settings-page">
+                <div className="settings-page loading">Loading...</div>
+            </div>
+        );
     }
 
+    // Error state
     if (error) {
-        return <div className="settings-page error">Error: {error}</div>;
+        return (
+            <div className="settings-page">
+                <div className="error-message">Error: {error}</div>
+                <button 
+                    className="retry-btn"
+                    onClick={() => window.location.reload()}
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
+    // No settings data
+    if (!settings) {
+        return (
+            <div className="settings-page">
+                <div className="error-message">No settings data available</div>
+                <button 
+                    className="retry-btn"
+                    onClick={() => window.location.reload()}
+                >
+                    Retry
+                </button>
+            </div>
+        );
     }
 
     return (
@@ -213,19 +422,53 @@ const Settings = ({ isAuthenticated }) => {
             </div>
 
             <div className="settings-section">
-                <h2>Connected Platforms</h2>
+                <h2>Connected Channels</h2>
                 <div className="platform-connections">
                     <div className="platform-card">
-                        <img src="/youtube-icon.png" alt="YouTube" className="platform-icon" />
                         <div className="platform-info">
-                            <h3>YouTube</h3>
-                            {platformConnections.find(p => p.platform === 'youtube') ? (
+                            {youtubeConnection && youtubeConnection.channels.length > 0 ? (
                                 <div className="connection-status connected">
-                                    Connected
-                                    <button className="disconnect-btn">Disconnect</button>
+                                    <div className="channels-list">
+                                        {youtubeConnection.channels.map(channel => (
+                                            <div key={channel.id} className="channel-item">
+                                                <img 
+                                                    src={channel.thumbnailUrl} 
+                                                    alt={channel.title} 
+                                                    className="channel-thumbnail"
+                                                />
+                                                <div className="channel-info">
+                                                    <h4>{channel.title}</h4>
+                                                    <p>{channel.statistics.subscriberCount} subscribers</p>
+                                                </div>
+                                                <button
+                                                    className="remove-channel-btn"
+                                                    onClick={() => handleRemoveChannel(channel.id)}
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="connection-actions">
+                                        <button 
+                                            className="connect-btn"
+                                            onClick={handleConnectYouTube}
+                                        >
+                                            Connect Another Account
+                                        </button>
+                                        <button 
+                                            className="disconnect-btn"
+                                            onClick={handleDisconnectYouTube}
+                                        >
+                                            Disconnect All
+                                        </button>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="connection-status">
+                                    <p className="connection-description">
+                                        Connect your YouTube accounts to manage your channels and generate content.
+                                    </p>
                                     <button 
                                         className="connect-btn"
                                         onClick={handleConnectYouTube}

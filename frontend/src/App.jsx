@@ -13,7 +13,6 @@ import api from './utils/api'
 
 // Protected Route Component for admin-only routes
 const AdminRoute = ({ children }) => {
-  // Check both localStorage and cookies for authentication
   const isAuthenticated = localStorage.getItem('user') !== null;
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = user.role === 'admin';
@@ -21,6 +20,11 @@ const AdminRoute = ({ children }) => {
   if (!isAuthenticated) {
     console.log('Not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
+  }
+
+  if (!isAdmin) {
+    console.log('Not admin, redirecting to dashboard');
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -51,38 +55,63 @@ const PublicRoute = ({ children }) => {
 };
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('user') !== null);
-  const [isAdmin, setIsAdmin] = useState(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return user.role === 'admin';
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check authentication status when component mounts
-    const user = localStorage.getItem('user');
-    if (user) {
-      setIsAuthenticated(true);
-      setIsAdmin(JSON.parse(user).role === 'admin');
-    }
+    const checkAuth = async () => {
+      try {
+        // Check if we have a user in localStorage
+        const userStr = localStorage.getItem('user');
+        if (!userStr) {
+          setIsAuthenticated(false);
+          setIsAdmin(false);
+          setLoading(false);
+          return;
+        }
+
+        // Verify the token with the backend
+        const response = await api.get('/auth/verify');
+        if (response.data.authenticated) {
+          const user = JSON.parse(userStr);
+          setIsAuthenticated(true);
+          setIsAdmin(user.role === 'admin');
+        } else {
+          // Token is invalid, clear localStorage
+          localStorage.removeItem('user');
+          setIsAuthenticated(false);
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error('Auth verification error:', error);
+        localStorage.removeItem('user');
+        setIsAuthenticated(false);
+        setIsAdmin(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await api.post('/auth/logout');
-      localStorage.removeItem('user');
-      setIsAuthenticated(false);
-      setIsAdmin(false);
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    setIsAdmin(false);
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Router>
-      <div className="app-container">
+      <div className="app">
         <NavBar 
           isAuthenticated={isAuthenticated} 
-          isAdmin={isAdmin}
+          isAdmin={isAdmin} 
           onLogout={handleLogout}
         />
         <main className="main-content">
@@ -92,12 +121,10 @@ function App() {
               path="/dashboard"
               element={
                 <PrivateRoute>
-                  <Dashboard />
+                  <Dashboard isAuthenticated={isAuthenticated} />
                 </PrivateRoute>
               }
             />
-
-            {/* Admin Routes */}
             <Route
               path="/admin"
               element={

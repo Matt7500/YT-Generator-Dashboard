@@ -5,7 +5,7 @@ const NavBar = ({ isAuthenticated, isAdmin, onLogout }) => {
     return (
         <nav className="navbar">
             <div className="navbar-brand">
-                <Link to="/">YT Generator</Link>
+                <Link to="/">Phane.ai</Link>
                 {isAdmin && <span className="admin-badge">Admin</span>}
             </div>
             <div className="navbar-menu">
@@ -25,7 +25,7 @@ const NavBar = ({ isAuthenticated, isAdmin, onLogout }) => {
                 ) : (
                     <>
                         <Link to="/login" className="nav-link">Login</Link>
-                        <Link to="/signup" className="nav-link">Sign Up</Link>
+                        <Link to="/signup" className="nav-link-signup">Sign Up</Link>
                     </>
                 )}
             </div>
