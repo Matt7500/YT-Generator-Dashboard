@@ -1,25 +1,28 @@
 .signup-container {
-  min-height: calc(100vh - 80px); /* Full viewport minus navbar */
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #f9fafb;
-  padding: 2.5rem 1.5rem;
+  padding: 1rem;
   margin: 0;
+  box-sizing: border-box;
 }
 
 .signup-box {
   background: white;
-  padding: 2.5rem;
+  padding: 2rem;
   border-radius: 12px;
   width: 100%;
   max-width: 550px;
   border: 1px solid #e5e7eb;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
 }
 
 .signup-box h1 {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: #1a1f36;
   margin-bottom: 0.5rem;
@@ -28,13 +31,13 @@
 
 .subtitle {
   color: #6b7280;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   font-size: 0.9375rem;
   line-height: 1.5;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-group label {

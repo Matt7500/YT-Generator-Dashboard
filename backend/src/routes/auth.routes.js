@@ -71,6 +71,7 @@ router.get('/youtube/connect', verifyToken, async (req, res) => {
             access_type: 'offline',
             scope: scopes,
             include_granted_scopes: true,
+            prompt: 'consent',  // Force consent screen to appear
             state: state
         });
 
@@ -184,12 +185,23 @@ router.get('/youtube/callback', async (req, res) => {
             channels: mergedChannels
         };
 
-        // Store the YouTube data in the database
+        // Store the YouTube data in the database, ensuring tokens are stored as plain strings
         await pool.query(
             `UPDATE users 
-             SET youtube = $1::jsonb
-             WHERE id = $2`,
-            [JSON.stringify(youtubeData), userId]
+             SET youtube = jsonb_build_object(
+                'accessToken', $1::text,
+                'refreshToken', $2::text,
+                'tokenExpiry', to_jsonb($3::bigint),
+                'channels', $4::jsonb
+             )
+             WHERE id = $5`,
+            [
+                tokens.access_token,
+                tokens.refresh_token,
+                tokens.expiry_date,
+                JSON.stringify(mergedChannels),
+                userId
+            ]
         );
 
         // Clean up the pending data

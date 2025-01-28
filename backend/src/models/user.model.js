@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const pool = require('../config/database');
 
 class User {
-    static async create({ email, password, role = 'user' }) {
+    static async create({ email, password, role = 'user', name = null }) {
         try {
             const passwordHash = await bcrypt.hash(password, 12);
             const query = `
@@ -12,17 +12,19 @@ class User {
                     password_hash, 
                     role,
                     is_verified,
-                    settings
+                    settings,
+                    name
                 )
-                VALUES ($1, $2, $3, true, $4)
-                RETURNING id, email, role;
+                VALUES ($1, $2, $3, true, $4, $5)
+                RETURNING id, email, role, name;
             `;
             const defaultSettings = {
                 theme: 'light',
                 email_notifications: false,
                 two_factor_enabled: false
             };
-            const values = [email, passwordHash, role, JSON.stringify(defaultSettings)];
+            const defaultName = name || email.split('@')[0];
+            const values = [email, passwordHash, role, JSON.stringify(defaultSettings), defaultName];
             const result = await pool.query(query, values);
             return result.rows[0];
         } catch (error) {
@@ -145,6 +147,22 @@ class User {
             return result.rows[0] ? result.rows[0].locked_until : null;
         } catch (error) {
             console.error('Error checking account lock:', error);
+            throw error;
+        }
+    }
+
+    static async updateProfile(userId, { name }) {
+        try {
+            const query = `
+                UPDATE users 
+                SET name = $1
+                WHERE id = $2
+                RETURNING id, email, name;
+            `;
+            const result = await pool.query(query, [name, userId]);
+            return result.rows[0];
+        } catch (error) {
+            console.error('Error updating profile:', error);
             throw error;
         }
     }

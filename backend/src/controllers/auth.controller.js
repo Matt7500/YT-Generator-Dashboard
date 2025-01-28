@@ -4,7 +4,7 @@ const User = require('../models/user.model');
 class AuthController {
     static async register(req, res) {
         try {
-            const { email, password } = req.body;
+            const { email, password, name } = req.body;
             
             // Check if user already exists
             const existingUser = await User.findByEmail(email);
@@ -16,6 +16,7 @@ class AuthController {
             const user = await User.create({ 
                 email, 
                 password,
+                name,
                 isVerified: true // Skip email verification for now
             });
 
@@ -39,6 +40,7 @@ class AuthController {
                 user: {
                     id: user.id,
                     email: user.email,
+                    name: user.name,
                     role: user.role
                 },
                 message: 'Registration successful'
@@ -85,6 +87,7 @@ class AuthController {
                 user: {
                     id: user.id,
                     email: user.email,
+                    name: user.name,
                     role: user.role
                 }
             });

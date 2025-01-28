@@ -58,6 +58,8 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('channels');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -67,6 +69,7 @@ function App() {
         if (!userStr) {
           setIsAuthenticated(false);
           setIsAdmin(false);
+          setUser(null);
           setLoading(false);
           return;
         }
@@ -74,20 +77,23 @@ function App() {
         // Verify the token with the backend
         const response = await api.get('/auth/verify');
         if (response.data.authenticated) {
-          const user = JSON.parse(userStr);
+          const userData = JSON.parse(userStr);
           setIsAuthenticated(true);
-          setIsAdmin(user.role === 'admin');
+          setIsAdmin(userData.role === 'admin');
+          setUser(userData);
         } else {
           // Token is invalid, clear localStorage
           localStorage.removeItem('user');
           setIsAuthenticated(false);
           setIsAdmin(false);
+          setUser(null);
         }
       } catch (error) {
         console.error('Auth verification error:', error);
         localStorage.removeItem('user');
         setIsAuthenticated(false);
         setIsAdmin(false);
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -100,6 +106,7 @@ function App() {
     localStorage.removeItem('user');
     setIsAuthenticated(false);
     setIsAdmin(false);
+    setUser(null);
   };
 
   if (loading) {
@@ -113,15 +120,22 @@ function App() {
           isAuthenticated={isAuthenticated} 
           isAdmin={isAdmin} 
           onLogout={handleLogout}
+          user={user}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
         />
-        <main className="main-content">
+        <main className="app-content">
           <Routes>
             {/* Protected Routes */}
             <Route
               path="/dashboard"
               element={
                 <PrivateRoute>
-                  <Dashboard isAuthenticated={isAuthenticated} />
+                  <Dashboard 
+                    isAuthenticated={isAuthenticated}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                  />
                 </PrivateRoute>
               }
             />

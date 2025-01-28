@@ -17,6 +17,8 @@ const Settings = ({ isAuthenticated }) => {
     const [showEmailForm, setShowEmailForm] = useState(false);
     const [newEmail, setNewEmail] = useState('');
     const [emailChangePassword, setEmailChangePassword] = useState('');
+    const [showNameForm, setShowNameForm] = useState(false);
+    const [newName, setNewName] = useState('');
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -336,6 +338,53 @@ const Settings = ({ isAuthenticated }) => {
                                                 setShowEmailForm(false);
                                                 setNewEmail('');
                                                 setEmailChangePassword('');
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
+                        </div>
+
+                        <div className="setting-item">
+                            <label>Name</label>
+                            <div className="setting-value-container">
+                                <div className="setting-value">{settings.name}</div>
+                                <button 
+                                    className="edit-btn"
+                                    onClick={() => setShowNameForm(!showNameForm)}
+                                >
+                                    Edit
+                                </button>
+                            </div>
+                            
+                            {showNameForm && (
+                                <form onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleSettingChange('name', newName);
+                                    setShowNameForm(false);
+                                    setNewName('');
+                                }} className="settings-form">
+                                    <div className="form-group">
+                                        <label>New Name</label>
+                                        <input
+                                            type="text"
+                                            value={newName}
+                                            onChange={(e) => setNewName(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-buttons">
+                                        <button type="submit" className="save-btn">
+                                            Update Name
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            className="cancel-btn"
+                                            onClick={() => {
+                                                setShowNameForm(false);
+                                                setNewName('');
                                             }}
                                         >
                                             Cancel

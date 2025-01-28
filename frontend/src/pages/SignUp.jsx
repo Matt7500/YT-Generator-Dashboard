@@ -6,6 +6,7 @@ import '../css/SignUp.css';
 
 const SignUp = ({ setIsAuthenticated, setIsAdmin }) => {
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -52,7 +53,7 @@ const SignUp = ({ setIsAuthenticated, setIsAdmin }) => {
     
     try {
       // Basic validation
-      if (!formData.email || !formData.password || !formData.confirmPassword) {
+      if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
         throw new Error('Please fill in all fields');
       }
       
@@ -68,6 +69,7 @@ const SignUp = ({ setIsAuthenticated, setIsAdmin }) => {
 
       // Register user
       const response = await api.post('/auth/register', {
+        name: formData.name,
         email: formData.email,
         password: formData.password
       });
@@ -104,6 +106,19 @@ const SignUp = ({ setIsAuthenticated, setIsAdmin }) => {
         <form onSubmit={handleSubmit}>
           {error && <div className="error-message">{error}</div>}
           
+          <div className="form-group">
+            <label htmlFor="name">Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Enter your name"
+              required
+            />
+          </div>
+
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input

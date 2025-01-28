@@ -47,8 +47,8 @@
   overflow: hidden;
 }
 
-.main-content {
-  margin-top: 80px; /* Same as navbar height */
+.app-content {
+  margin-top: 80px;
   flex: 1;
   width: 100%;
   height: calc(100vh - 80px); /* Viewport height minus navbar height */

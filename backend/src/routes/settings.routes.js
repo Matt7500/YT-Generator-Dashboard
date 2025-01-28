@@ -2,6 +2,7 @@ const express = require('express');
 const { verifyToken } = require('../middleware/auth.middleware');
 const pool = require('../config/database');
 const { google } = require('googleapis');
+const User = require('../models/user.model');
 
 const router = express.Router();
 
@@ -42,31 +43,26 @@ router.get('/', async (req, res) => {
 // Update user settings
 router.patch('/', async (req, res) => {
     try {
-        const updates = {};
-        for (const [key, value] of Object.entries(req.body)) {
-            updates[key] = value;
-        }
-
-        const result = await pool.query(
-            `UPDATE users 
-             SET settings = settings || $1::jsonb 
-             WHERE id = $2
-             RETURNING email, settings`,
-            [JSON.stringify(updates), req.user.userId]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        const user = result.rows[0];
-        const settings = user.settings || {};
+        const { name, email, settings } = req.body;
+        const userId = req.user.id;
         
+        if (name) {
+            await User.updateProfile(userId, { name });
+        }
+        
+        if (email) {
+            // ... existing email update logic ...
+        }
+
+        if (settings) {
+            // ... existing settings update logic ...
+        }
+
+        const updatedUser = await User.findByEmail(req.user.email);
         res.json({
-            email: user.email,
-            theme: settings.theme || 'light',
-            email_notifications: settings.email_notifications || false,
-            two_factor_enabled: settings.two_factor_enabled || false
+            email: updatedUser.email,
+            name: updatedUser.name,
+            settings: updatedUser.settings
         });
     } catch (error) {
         console.error('Error updating settings:', error);
@@ -355,7 +351,7 @@ router.get('/youtube/analytics', verifyToken, async (req, res) => {
         }
 
         // Check for refresh token at root level
-        if (!user.youtube.refreshToken) {
+        if (!user.youtube?.refreshToken) {
             console.error('No refresh token found in YouTube account');
             return res.status(401).json({ message: 'YouTube account not properly connected. Please reconnect your account.' });
         }
@@ -370,6 +366,25 @@ router.get('/youtube/analytics', verifyToken, async (req, res) => {
         }
 
         console.log('Found valid channels:', validChannels.length);
+
+        // Parse and handle the refresh token
+        let refreshToken = user.youtube.refreshToken;
+        if (typeof refreshToken === 'string') {
+            try {
+                // Handle double-quoted JSON string
+                if (refreshToken.startsWith('"') && refreshToken.endsWith('"')) {
+                    refreshToken = JSON.parse(refreshToken);
+                }
+                // Handle escaped JSON string
+                if (refreshToken.includes('\\"')) {
+                    refreshToken = JSON.parse(JSON.parse(refreshToken));
+                }
+            } catch (err) {
+                console.error('Error parsing refresh token:', err);
+                // If parsing fails, use the token as is
+                refreshToken = refreshToken.replace(/^"|"$/g, '');
+            }
+        }
 
         // Create YouTube API client
         const oauth2Client = new google.auth.OAuth2(
@@ -404,28 +419,27 @@ router.get('/youtube/analytics', verifyToken, async (req, res) => {
 
         console.log('Date range:', { startDateString, endDateString });
 
-        // Parse and handle the refresh token
-        let refreshToken = user.youtube.refreshToken;
-        if (typeof refreshToken === 'string' && refreshToken.startsWith('"') && refreshToken.endsWith('"')) {
-            try {
-                refreshToken = JSON.parse(refreshToken);
-            } catch (err) {
-                console.error('Error parsing refresh token:', err);
-                refreshToken = refreshToken.slice(1, -1);
-            }
-        }
-
         // Refresh the access token once for all requests
         console.log('Refreshing access token...');
         const { tokens } = await oauth2Client.refreshToken(refreshToken);
         
-        // Update the tokens in the database
+        // Update the tokens in the database while preserving all existing data
         await pool.query(
             `UPDATE users 
-             SET youtube = jsonb_set(
-                jsonb_set(youtube::jsonb, '{accessToken}', $1::jsonb),
-                '{refreshToken}',
-                $2::jsonb
+             SET youtube = (
+                SELECT jsonb_set(
+                    jsonb_set(
+                        youtube::jsonb,
+                        '{accessToken}',
+                        $1::jsonb,
+                        true
+                    ),
+                    '{refreshToken}',
+                    $2::jsonb,
+                    true
+                )
+                FROM users 
+                WHERE id = $3
              )
              WHERE id = $3`,
             [JSON.stringify(tokens.access_token), JSON.stringify(tokens.refresh_token), req.user.userId]

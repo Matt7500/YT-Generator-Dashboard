@@ -42,8 +42,7 @@ function formatCurrency(amount) {
   }).format(amount)
 }
 
-function Dashboard() {
-  const [activeTab, setActiveTab] = useState('channels') // 'channels' or 'analytics'
+function Dashboard({ isAuthenticated, activeTab, setActiveTab }) {
   const [channels, setChannels] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -291,79 +290,136 @@ function Dashboard() {
                'Views',
         data: values,
         borderColor: '#2563eb',
-        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+        backgroundColor: 'rgba(37, 99, 235, 0.05)',
         fill: true,
-        tension: 0.4
+        tension: 0.3,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 4
       }]
     }
   }
 
   const getChartOptions = (title) => ({
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false
       },
       title: {
         display: false
+      },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        titleColor: '#1f2937',
+        bodyColor: '#1f2937',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+        padding: 8,
+        bodyFont: {
+          size: 12
+        },
+        titleFont: {
+          size: 12,
+          weight: '600'
+        },
+        displayColors: false
       }
+    },
+    interaction: {
+      mode: 'nearest',
+      axis: 'x',
+      intersect: false
     },
     scales: {
       x: {
         grid: {
           display: false
+        },
+        ticks: {
+          font: {
+            size: 11
+          },
+          color: '#6b7280'
         }
       },
       y: {
-        beginAtZero: true
+        beginAtZero: true,
+        grid: {
+          color: '#f3f4f6',
+          drawBorder: false
+        },
+        ticks: {
+          font: {
+            size: 11
+          },
+          color: '#6b7280',
+          padding: 8
+        },
+        border: {
+          display: false
+        }
       }
     }
   })
 
   const renderChannelsTab = () => (
     <>
-      <div className="channels-grid">
-        {channels.map(channel => (
-          <div 
-            className={`channel-card ${
-              removingChannels.includes(channel.id) ? 'removing' : ''
-            } ${newChannelId === channel.id ? 'new' : ''}`}
-            key={`channel-${channel.id}`}
-          >
-            <div className="channel-header">
-              <img 
-                src={channel.thumbnailUrl}
-                alt={channel.title} 
-                className="channel-avatar"
-              />
-              <div className="channel-info">
-                <h2 className="channel-name">{channel.title}</h2>
-                <span className="channel-handle">{channel.customUrl || channel.id}</span>
+      {channels.length === 0 ? (
+        <div className="channels-empty">
+          <h2>No Channels Connected</h2>
+          <p>Connect your YouTube channel to start managing your content</p>
+          <button className="connect-channel-btn" onClick={handleConnectYouTube}>
+            Connect Channel
+          </button>
+        </div>
+      ) : (
+        <div className="channels-grid">
+          {channels.map(channel => (
+            <div 
+              className={`channel-card ${
+                removingChannels.includes(channel.id) ? 'removing' : ''
+              } ${newChannelId === channel.id ? 'new' : ''}`}
+              key={`channel-${channel.id}`}
+            >
+              <div className="channel-header">
+                <img 
+                  src={channel.thumbnailUrl}
+                  alt={channel.title} 
+                  className="channel-avatar"
+                />
+                <div className="channel-info">
+                  <h2 className="channel-name">{channel.title}</h2>
+                  <span className="channel-handle">{channel.customUrl || channel.id}</span>
+                </div>
               </div>
-            </div>
-            
-            <div className="channel-stats">
-              <div className="stat-item">
-                <span className="stat-value">{formatNumber(channel.statistics.subscriberCount)}</span>
-                <span className="stat-label">Subscribers</span>
+              
+              <div className="channel-stats">
+                <div className="stat-item">
+                  <span className="stat-value">{formatNumber(channel.statistics.subscriberCount)}</span>
+                  <span className="stat-label">Subscribers</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-value">{formatNumber(channel.statistics.videoCount)}</span>
+                  <span className="stat-label">Videos</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-value">{formatNumber(channel.statistics.viewCount)}</span>
+                  <span className="stat-label">Views</span>
+                </div>
               </div>
-              <div className="stat-item">
-                <span className="stat-value">{formatNumber(channel.statistics.videoCount)}</span>
-                <span className="stat-label">Videos</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-value">{formatNumber(channel.statistics.viewCount)}</span>
-                <span className="stat-label">Views</span>
-              </div>
-            </div>
 
-            <div className="channel-actions">
-              <button className="settings-btn">Settings</button>
-              <button className="create-video-btn">Create Video</button>
+              <div className="channel-actions">
+                <button className="settings-btn">Settings</button>
+                <button className="create-video-btn">Create Video</button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </>
   )
 
@@ -565,9 +621,7 @@ function Dashboard() {
       <div className="main-content">
         {activeTab === 'channels' ? (
           <div className="channels-container">
-            <div className="channels-grid">
-              {renderChannelsTab()}
-            </div>
+            {renderChannelsTab()}
           </div>
         ) : (
           <div className="analytics-container">
