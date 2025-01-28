@@ -14,6 +14,9 @@ const Settings = ({ isAuthenticated }) => {
     const [showPasswordForm, setShowPasswordForm] = useState(false);
     const [platformConnections, setPlatformConnections] = useState([]);
     const [youtubeConnection, setYoutubeConnection] = useState(null);
+    const [showEmailForm, setShowEmailForm] = useState(false);
+    const [newEmail, setNewEmail] = useState('');
+    const [emailChangePassword, setEmailChangePassword] = useState('');
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -90,6 +93,20 @@ const Settings = ({ isAuthenticated }) => {
         } catch (err) {
             console.error('Error updating settings:', err);
             setError(err.response?.data?.message || 'Error updating settings');
+            setTimeout(() => setError(null), 3000);
+        }
+    };
+
+    const handleEmailChange = async (e) => {
+        e.preventDefault();
+        try {
+            await api.patch('/settings', { email: newEmail });
+            setSettings(response => ({ ...response, email: newEmail }));
+            setSuccessMessage('Email updated successfully');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            console.error('Error updating email:', err);
+            setError(err.response?.data?.message || 'Error updating email');
             setTimeout(() => setError(null), 3000);
         }
     };
@@ -252,231 +269,222 @@ const Settings = ({ isAuthenticated }) => {
         }
     };
 
-    // Handle redirects if not authenticated
     if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/login" />;
     }
 
-    // Loading state
     if (loading) {
-        return (
-            <div className="settings-page">
-                <div className="settings-page loading">Loading...</div>
-            </div>
-        );
-    }
-
-    // Error state
-    if (error) {
-        return (
-            <div className="settings-page">
-                <div className="error-message">Error: {error}</div>
-                <button 
-                    className="retry-btn"
-                    onClick={() => window.location.reload()}
-                >
-                    Retry
-                </button>
-            </div>
-        );
-    }
-
-    // No settings data
-    if (!settings) {
-        return (
-            <div className="settings-page">
-                <div className="error-message">No settings data available</div>
-                <button 
-                    className="retry-btn"
-                    onClick={() => window.location.reload()}
-                >
-                    Retry
-                </button>
-            </div>
-        );
+        return <div className="settings-page loading"></div>;
     }
 
     return (
         <div className="settings-page">
-            <h1>Account Settings</h1>
-            
-            {successMessage && (
-                <div className="success-message">{successMessage}</div>
-            )}
-            
-            {error && (
-                <div className="error-message">{error}</div>
-            )}
+            <div className="settings-container">
+                <h1>Account Settings</h1>
+                
+                {successMessage && (
+                    <div className="success-message">{successMessage}</div>
+                )}
+                
+                {error && (
+                    <div className="error-message">{error}</div>
+                )}
 
-            <div className="settings-section">
-                <h2>Account Security</h2>
-                <div className="settings-grid">
-                    <div className="setting-item">
-                        <label>Email</label>
-                        <div className="setting-value">{settings.email}</div>
-                    </div>
-
-                    <div className="setting-item">
-                        <label>Two-Factor Authentication</label>
-                        <div className="toggle-switch">
-                            <input
-                                type="checkbox"
-                                checked={settings.two_factor_enabled}
-                                onChange={(e) => handleSettingChange('two_factor_enabled', e.target.checked)}
-                            />
-                            <span className="toggle-slider"></span>
-                        </div>
-                        <p className="setting-description">
-                            {settings.two_factor_enabled 
-                                ? 'Two-factor authentication is enabled' 
-                                : 'Enable two-factor authentication for additional security'}
-                        </p>
-                    </div>
-
-                    <div className="setting-item full-width">
-                        <button 
-                            className="change-password-btn"
-                            onClick={() => setShowPasswordForm(!showPasswordForm)}
-                        >
-                            Change Password
-                        </button>
-                        
-                        {showPasswordForm && (
-                            <form onSubmit={handlePasswordChange} className="password-form">
-                                <div className="form-group">
-                                    <label>Current Password</label>
-                                    <input
-                                        type="password"
-                                        value={currentPassword}
-                                        onChange={(e) => setCurrentPassword(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>New Password</label>
-                                    <input
-                                        type="password"
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Confirm New Password</label>
-                                    <input
-                                        type="password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-buttons">
-                                    <button type="submit" className="save-btn">
-                                        Update Password
-                                    </button>
-                                    <button 
-                                        type="button" 
-                                        className="cancel-btn"
-                                        onClick={() => {
-                                            setShowPasswordForm(false);
-                                            setCurrentPassword('');
-                                            setNewPassword('');
-                                            setConfirmPassword('');
-                                        }}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </form>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            <div className="settings-section">
-                <h2>Preferences</h2>
-                <div className="settings-grid">
-                    <div className="setting-item">
-                        <label>Theme</label>
-                        <select 
-                            value={settings.theme} 
-                            onChange={(e) => handleSettingChange('theme', e.target.value)}
-                        >
-                            <option value="light">Light</option>
-                            <option value="dark">Dark</option>
-                        </select>
-                    </div>
-
-                    <div className="setting-item">
-                        <label>Email Notifications</label>
-                        <div className="toggle-switch">
-                            <input
-                                type="checkbox"
-                                checked={settings.email_notifications}
-                                onChange={(e) => handleSettingChange('email_notifications', e.target.checked)}
-                            />
-                            <span className="toggle-slider"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="settings-section">
-                <h2>Connected Channels</h2>
-                <div className="platform-connections">
-                    <div className="platform-card">
-                        <div className="platform-info">
-                            {youtubeConnection && youtubeConnection.channels.length > 0 ? (
-                                <div className="connection-status connected">
-                                    <div className="channels-list">
-                                        {youtubeConnection.channels.map(channel => (
-                                            <div key={channel.id} className="channel-item">
-                                                <img 
-                                                    src={channel.thumbnailUrl} 
-                                                    alt={channel.title} 
-                                                    className="channel-thumbnail"
-                                                />
-                                                <div className="channel-info">
-                                                    <h4>{channel.title}</h4>
-                                                    <p>{channel.statistics.subscriberCount} subscribers</p>
-                                                </div>
-                                                <button
-                                                    className="remove-channel-btn"
-                                                    onClick={() => handleRemoveChannel(channel.id)}
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
-                                        ))}
+                <div className="settings-section">
+                    <h2>Profile Settings</h2>
+                    <div className="settings-grid">
+                        <div className="setting-item">
+                            <label>Email</label>
+                            <div className="setting-value-container">
+                                <div className="setting-value">{settings.email}</div>
+                                <button 
+                                    className="edit-btn"
+                                    onClick={() => setShowEmailForm(!showEmailForm)}
+                                >
+                                    Edit
+                                </button>
+                            </div>
+                            
+                            {showEmailForm && (
+                                <form onSubmit={handleEmailChange} className="settings-form">
+                                    <div className="form-group">
+                                        <label>New Email</label>
+                                        <input
+                                            type="email"
+                                            value={newEmail}
+                                            onChange={(e) => setNewEmail(e.target.value)}
+                                            required
+                                        />
                                     </div>
-                                    <div className="connection-actions">
+                                    <div className="form-group">
+                                        <label>Password (to confirm)</label>
+                                        <input
+                                            type="password"
+                                            value={emailChangePassword}
+                                            onChange={(e) => setEmailChangePassword(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-buttons">
+                                        <button type="submit" className="save-btn">
+                                            Update Email
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            className="cancel-btn"
+                                            onClick={() => {
+                                                setShowEmailForm(false);
+                                                setNewEmail('');
+                                                setEmailChangePassword('');
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
+                        </div>
+
+                        <div className="setting-item">
+                            <label>Two-Factor Authentication</label>
+                            <div className="setting-value-container">
+                                <div className="toggle-switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={settings.two_factor_enabled}
+                                        onChange={(e) => handleSettingChange('two_factor_enabled', e.target.checked)}
+                                    />
+                                    <span className="toggle-slider"></span>
+                                </div>
+                                <p className="setting-description">
+                                    {settings.two_factor_enabled 
+                                        ? 'Two-factor authentication is enabled' 
+                                        : 'Enable two-factor authentication for additional security'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="setting-item">
+                            <label>Password</label>
+                            <div className="setting-value-container">
+                                <div className="setting-value">••••••••</div>
+                                <button 
+                                    className="edit-btn"
+                                    onClick={() => setShowPasswordForm(!showPasswordForm)}
+                                >
+                                    Change Password
+                                </button>
+                            </div>
+                            
+                            {showPasswordForm && (
+                                <form onSubmit={handlePasswordChange} className="settings-form">
+                                    <div className="form-group">
+                                        <label>Current Password</label>
+                                        <input
+                                            type="password"
+                                            value={currentPassword}
+                                            onChange={(e) => setCurrentPassword(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>New Password</label>
+                                        <input
+                                            type="password"
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Confirm New Password</label>
+                                        <input
+                                            type="password"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-buttons">
+                                        <button type="submit" className="save-btn">
+                                            Update Password
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            className="cancel-btn"
+                                            onClick={() => {
+                                                setShowPasswordForm(false);
+                                                setCurrentPassword('');
+                                                setNewPassword('');
+                                                setConfirmPassword('');
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="settings-section">
+                    <h2>Connected Channels</h2>
+                    <div className="platform-connections">
+                        <div className="platform-card">
+                            <div className="platform-info">
+                                {youtubeConnection && youtubeConnection.channels.length > 0 ? (
+                                    <div className="connection-status connected">
+                                        <div className="channels-list">
+                                            {youtubeConnection.channels.map(channel => (
+                                                <div key={channel.id} className="channel-item">
+                                                    <img 
+                                                        src={channel.thumbnailUrl} 
+                                                        alt={channel.title} 
+                                                        className="channel-thumbnail"
+                                                    />
+                                                    <div className="channel-info">
+                                                        <h4>{channel.title}</h4>
+                                                        <p>{Number(channel.statistics.subscriberCount).toLocaleString()} subscribers</p>
+                                                    </div>
+                                                    <button
+                                                        className="remove-channel-btn"
+                                                        onClick={() => handleRemoveChannel(channel.id)}
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="connection-actions">
+                                            <button 
+                                                className="connect-btn"
+                                                onClick={handleConnectYouTube}
+                                            >
+                                                Connect Another Account
+                                            </button>
+                                            <button 
+                                                className="disconnect-btn"
+                                                onClick={handleDisconnectYouTube}
+                                            >
+                                                Disconnect All
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="connection-status">
+                                        <p className="connection-description">
+                                            Connect your YouTube accounts to manage your channels and generate content.
+                                        </p>
                                         <button 
                                             className="connect-btn"
                                             onClick={handleConnectYouTube}
                                         >
-                                            Connect Another Account
-                                        </button>
-                                        <button 
-                                            className="disconnect-btn"
-                                            onClick={handleDisconnectYouTube}
-                                        >
-                                            Disconnect All
+                                            Connect Account
                                         </button>
                                     </div>
-                                </div>
-                            ) : (
-                                <div className="connection-status">
-                                    <p className="connection-description">
-                                        Connect your YouTube accounts to manage your channels and generate content.
-                                    </p>
-                                    <button 
-                                        className="connect-btn"
-                                        onClick={handleConnectYouTube}
-                                    >
-                                        Connect Account
-                                    </button>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -120,23 +120,6 @@ const Login = ({ setIsAuthenticated, setIsAdmin }) => {
             Sign up
           </Link>
         </p>
-
-        {/* Add demo credentials hint */}
-        <div className="demo-credentials">
-          <p>Demo Credentials:</p>
-          <div className="user-credentials">
-            <p><strong>Regular User:</strong></p>
-            <code>Email: test@example.com</code>
-            <br />
-            <code>Password: password123</code>
-          </div>
-          <div className="admin-credentials">
-            <p><strong>Admin User:</strong></p>
-            <code>Email: admin@example.com</code>
-            <br />
-            <code>Password: admin123</code>
-          </div>
-        </div>
       </div>
     </div>
   );

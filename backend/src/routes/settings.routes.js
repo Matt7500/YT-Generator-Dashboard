@@ -206,18 +206,16 @@ router.post('/youtube/channels', async (req, res) => {
             ...channels
         ];
 
-        // Preserve the OAuth tokens while updating channels
-        const updatedYouTubeData = {
-            ...user.youtube,
-            channels: updatedChannels
-        };
-
-        // Update user with cleaned up channels array while preserving tokens
+        // Update user with cleaned up channels array
         await pool.query(
             `UPDATE users 
-             SET youtube = $1::jsonb
+             SET youtube = jsonb_set(
+                COALESCE(youtube::jsonb, '{}'::jsonb),
+                '{channels}',
+                $1::jsonb
+             )
              WHERE id = $2`,
-            [JSON.stringify(updatedYouTubeData), req.user.userId]
+            [JSON.stringify(updatedChannels), req.user.userId]
         );
 
         res.json({ message: 'Channels saved successfully' });

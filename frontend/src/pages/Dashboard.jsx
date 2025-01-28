@@ -60,6 +60,7 @@ function Dashboard() {
   const [analyticsData, setAnalyticsData] = useState(null)
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false)
   const [analyticsError, setAnalyticsError] = useState(null)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
     fetchChannels()
@@ -234,7 +235,13 @@ function Dashboard() {
     setTimeout(() => {
       setIsConfirmClosing(false)
       setIsConfirmOpen(false)
+      setIsOpen(true)
     }, 200)
+  }
+
+  const handleShowConfirmModal = () => {
+    setIsOpen(false)
+    setIsConfirmOpen(true)
   }
 
   const toggleChannelSelection = (channelId) => {
@@ -331,7 +338,7 @@ function Dashboard() {
               />
               <div className="channel-info">
                 <h2 className="channel-name">{channel.title}</h2>
-                <span className="channel-handle">@{channel.customUrl || channel.id}</span>
+                <span className="channel-handle">{channel.customUrl || channel.id}</span>
               </div>
             </div>
             
@@ -502,13 +509,15 @@ function Dashboard() {
     </div>
   )
 
+  const handleCreateAll = () => {
+    // TODO: Implement create for all functionality
+    console.log('Create for all clicked')
+  }
+
   if (isLoading) {
     return (
-      <div className="home">
-        <div className="home-content">
-          <header className="dashboard-header">
-            <h1>Channel Manager</h1>
-          </header>
+      <div className="dashboard-container">
+        <div className="main-content">
           <div className="loading">Loading channels...</div>
         </div>
       </div>
@@ -517,11 +526,8 @@ function Dashboard() {
 
   if (error) {
     return (
-      <div className="home">
-        <div className="home-content">
-          <header className="dashboard-header">
-            <h1>Channel Manager</h1>
-          </header>
+      <div className="dashboard-container">
+        <div className="main-content">
           <div className="error">Error: {error}</div>
         </div>
       </div>
@@ -529,36 +535,45 @@ function Dashboard() {
   }
 
   return (
-    <div className="home">
-      <div className="home-content">
-        <header className="dashboard-header">
-          <div className="header-left">
-            <h1>Channel Manager</h1>
-            <div className="tab-buttons">
-              <button
-                className={`tab-btn ${activeTab === 'channels' ? 'active' : ''}`}
-                onClick={() => setActiveTab('channels')}
-              >
-                Channels
-              </button>
-              <button
-                className={`tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
-                onClick={() => setActiveTab('analytics')}
-              >
-                Analytics
-              </button>
+    <div className="dashboard-container">
+      <div className={`sidebar ${isSidebarOpen ? 'active' : ''}`}>
+        <h1 className="sidebar-title">Channel Manager</h1>
+        <div className="sidebar-nav">
+          <div 
+            className={`sidebar-nav-item ${activeTab === 'channels' ? 'active' : ''}`}
+            onClick={() => setActiveTab('channels')}
+          >
+            <span>Channels</span>
+          </div>
+          <div 
+            className={`sidebar-nav-item ${activeTab === 'analytics' ? 'active' : ''}`}
+            onClick={() => setActiveTab('analytics')}
+          >
+            <span>Analytics</span>
+          </div>
+        </div>
+        <div className="sidebar-bottom">
+          <button className="create-all-btn" onClick={handleCreateAll}>
+            Create For All
+          </button>
+          <button className="edit-channels-btn" onClick={() => setIsOpen(true)}>
+            Edit Channels
+          </button>
+        </div>
+      </div>
+
+      <div className="main-content">
+        {activeTab === 'channels' ? (
+          <div className="channels-container">
+            <div className="channels-grid">
+              {renderChannelsTab()}
             </div>
           </div>
-          <div className="header-actions">
-            <button className="create-all-videos-btn">Create for All</button>
-            <button 
-              type="button"
-              onClick={() => setIsOpen(true)} 
-              className="edit-channels-btn">
-              Edit Channels
-            </button>
+        ) : (
+          <div className="analytics-container">
+            {renderAnalyticsTab()}
           </div>
-        </header>
+        )}
 
         {successMessage && (
           <div className="success-message">{successMessage}</div>
@@ -567,133 +582,135 @@ function Dashboard() {
         {error && (
           <div className="error-message">{error}</div>
         )}
-
-        {isOpen && (
-          <Dialog 
-            as="div" 
-            open={isOpen} 
-            onClose={closeMainModal}
-            className={`dialog-overlay ${isClosing ? 'data-closing' : ''}`}
-          >
-            <div className="modal-backdrop" />
-            <div className="modal-container">
-              <div className="modal-content">
-                <Dialog.Title className="modal-title">
-                  Edit Channels
-                  <button 
-                    onClick={closeMainModal}
-                    className="close-modal-btn"
-                    aria-label="Close">
-                    ×
-                  </button>
-                </Dialog.Title>
-                <div className="modal-body">
-                  {channels.length > 0 ? (
-                    <>
-                      <div className="channels-list">
-                        {channels.map(channel => (
-                          <div 
-                            key={channel.id} 
-                            className={`channel-list-item ${
-                              selectedChannels.includes(channel.id) ? 'selected' : ''
-                            }`}>
-                            <input
-                              type="checkbox"
-                              checked={selectedChannels.includes(channel.id)}
-                              onChange={() => toggleChannelSelection(channel.id)}
-                              className="channel-checkbox"/>
-                            <img 
-                              src={channel.thumbnailUrl} 
-                              alt={channel.title}
-                              className="channel-list-avatar"/>
-                            <div className="channel-list-info">
-                              <div className="channel-list-name">{channel.title}</div>
-                              <div className="channel-list-handle">@{channel.customUrl || channel.id}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="connection-actions">
-                        <button 
-                          className="connect-btn"
-                          onClick={handleConnectYouTube}
-                        >
-                          Connect Another Account
-                        </button>
-                        <button 
-                          className="disconnect-btn"
-                          onClick={handleDisconnectYouTube}
-                        >
-                          Disconnect All
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="connection-status">
-                      <p className="connection-description">
-                        Connect your YouTube accounts to manage your channels and generate content.
-                      </p>
-                      <button 
-                        className="connect-btn"
-                        onClick={handleConnectYouTube}
-                      >
-                        Connect Account
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="modal-footer">
-                  {selectedChannels.length > 0 && (
-                    <button 
-                      onClick={() => setIsConfirmOpen(true)}
-                      className="remove-selected-btn">
-                      Remove Selected ({selectedChannels.length})
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </Dialog>
-        )}
-
-        {isConfirmOpen && (
-          <Dialog 
-            as="div" 
-            open={isConfirmOpen} 
-            onClose={closeConfirmModal}
-            className={`dialog-overlay ${isConfirmClosing ? 'data-closing' : ''}`}
-          >
-            <div className="modal-backdrop" />
-            <div className="modal-container">
-              <div className="modal-content confirm-dialog">
-                <Dialog.Title className="modal-title">
-                  Confirm Deletion
-                </Dialog.Title>
-                <div className="modal-body">
-                  <p>Remove {selectedChannels.length} selected channel{selectedChannels.length > 1 ? 's' : ''}?</p>
-                  <p>This action cannot be undone. The channels will be permanently removed from your account.</p>
-                </div>
-                <div className="modal-footer">
-                  <button 
-                    onClick={closeConfirmModal}
-                    className="close-btn">
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={removeSelectedChannels}
-                    className="remove-selected-btn">
-                    Remove
-                  </button>
-                </div>
-              </div>
-            </div>
-          </Dialog>
-        )}
-
-        {/* Render active tab content */}
-        {activeTab === 'channels' ? renderChannelsTab() : renderAnalyticsTab()}
       </div>
+
+      {isOpen && (
+        <Dialog 
+          as="div" 
+          open={isOpen} 
+          onClose={closeMainModal}
+          className={`dialog-overlay ${isClosing ? 'data-closing' : ''}`}
+        >
+          <div className="modal-backdrop" />
+          <div className="modal-container">
+            <div className="modal-content">
+              <Dialog.Title className="modal-title">
+                Edit Channels
+                <button 
+                  onClick={closeMainModal}
+                  className="close-modal-btn"
+                  aria-label="Close">
+                  ×
+                </button>
+              </Dialog.Title>
+              <div className="modal-body">
+                {channels.length > 0 ? (
+                  <>
+                    <div className="channels-list">
+                      {channels.map(channel => (
+                        <div 
+                          key={channel.id} 
+                          className={`channel-list-item ${
+                            selectedChannels.includes(channel.id) ? 'selected' : ''
+                          }`}>
+                          <input
+                            type="checkbox"
+                            checked={selectedChannels.includes(channel.id)}
+                            onChange={() => toggleChannelSelection(channel.id)}
+                            className="channel-checkbox"/>
+                          <img 
+                            src={channel.thumbnailUrl} 
+                            alt={channel.title}
+                            className="channel-list-avatar"/>
+                          <div className="channel-list-info">
+                            <div className="channel-list-name">{channel.title}</div>
+                            <div className="channel-list-handle">@{channel.customUrl || channel.id}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="modal-footer">
+                      {selectedChannels.length > 0 ? (
+                        <button 
+                          onClick={handleShowConfirmModal}
+                          className="modal-btn modal-btn-danger modal-btn-full">
+                          Remove Selected Channels ({selectedChannels.length})
+                        </button>
+                      ) : (
+                        <>
+                          <button 
+                            className="modal-btn modal-btn-secondary"
+                            onClick={handleConnectYouTube}
+                          >
+                            Connect Another Account
+                          </button>
+                          <button 
+                            className="modal-btn modal-btn-danger"
+                            onClick={handleDisconnectYouTube}
+                          >
+                            Disconnect All
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="connection-status">
+                    <p className="connection-description">
+                      Connect your YouTube accounts to manage your channels and generate content.
+                    </p>
+                    <button 
+                      className="connect-btn"
+                      onClick={handleConnectYouTube}
+                    >
+                      Connect Account
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </Dialog>
+      )}
+
+      {isConfirmOpen && (
+        <Dialog 
+          as="div" 
+          open={isConfirmOpen} 
+          onClose={closeConfirmModal}
+          className={`dialog-overlay ${isConfirmClosing ? 'data-closing' : ''}`}
+        >
+          <div className="modal-backdrop" />
+          <div className="modal-container">
+            <div className="modal-content confirm-dialog">
+              <Dialog.Title className="modal-title">
+                Delete Channels
+              </Dialog.Title>
+              <div className="modal-body">
+                <p>
+                  Are you sure you want to remove {selectedChannels.length} {selectedChannels.length === 1 ? 'channel' : 'channels'}?
+                </p>
+                <p>
+                  This action cannot be undone and the channels will be permanently removed from your account.
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  onClick={closeConfirmModal}
+                  className="modal-btn modal-btn-secondary">
+                  Cancel
+                </button>
+                <button 
+                  onClick={removeSelectedChannels}
+                  className="modal-btn modal-btn-danger"
+                  style={{ background: '#dc2626', color: 'white', borderColor: '#dc2626' }}>
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </Dialog>
+      )}
     </div>
   )
 }
