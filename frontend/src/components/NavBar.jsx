@@ -60,8 +60,15 @@ const NavBar = ({ isAuthenticated, isAdmin, onLogout, user, activeTab, setActive
 
                 <div className="navbar-brand">
                     <Link to="/">YT Manager</Link>
-                    {isAdmin && <span className="admin-badge">Admin</span>}
                 </div>
+
+                {isAuthenticated && (
+                    <div className="welcome-message">
+                        Welcome, {user?.name || 'User'}!
+                    </div>
+                )}
+
+                {isAdmin && <span className="admin-badge">Admin</span>}
 
                 {/* Desktop Menu */}
                 <div className="navbar-menu desktop-menu">
@@ -86,7 +93,7 @@ const NavBar = ({ isAuthenticated, isAdmin, onLogout, user, activeTab, setActive
                                     >
                                         <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                                     </svg>
-                                    <span>{user?.name || 'Account'}</span>
+                                    <span>Account</span>
                                     <svg 
                                         className="chevron-icon"
                                         width="16" 
@@ -107,7 +114,7 @@ const NavBar = ({ isAuthenticated, isAdmin, onLogout, user, activeTab, setActive
                                         <div className="user-email">{user?.email}</div>
                                     </div>
                                     <div className="dropdown-divider"></div>
-                                    <Link to="/settings" className="dropdown-item">
+                                    <Link to="/settings" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
                                         Settings
                                     </Link>
                                     <div className="dropdown-divider"></div>
@@ -187,7 +194,7 @@ const NavBar = ({ isAuthenticated, isAdmin, onLogout, user, activeTab, setActive
 
             {isAuthenticated && (
                 <div className={`sidebar ${isSidebarOpen ? 'active' : ''}`}>
-                    <h1 className="sidebar-title">Channel Manager</h1>
+                    <h3 className="sidebar-title">Channel Manager</h3>
                     <div className="sidebar-nav">
                         <div 
                             className={`sidebar-nav-item ${activeTab === 'channels' ? 'active' : ''}`}

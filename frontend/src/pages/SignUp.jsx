@@ -4,7 +4,7 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import api from '../utils/api';
 import '../css/SignUp.css';
 
-const SignUp = ({ setIsAuthenticated, setIsAdmin }) => {
+const SignUp = ({ setIsAuthenticated, setIsAdmin, setUser }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -76,9 +76,10 @@ const SignUp = ({ setIsAuthenticated, setIsAdmin }) => {
       
       const data = response.data;
 
-      // Update authentication state
+      // Update authentication state and user data
       setIsAuthenticated(true);
       setIsAdmin(data.user.role === 'admin');
+      setUser(data.user);
       
       // Store user info in localStorage
       localStorage.setItem('user', JSON.stringify(data.user));

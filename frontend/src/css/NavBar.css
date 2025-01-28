@@ -1,18 +1,17 @@
 .navbar {
     position: fixed;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     top: 0;
     left: 0;
     width: 100%;
     height: 80px;
-    background-color: rgb(255, 255, 255);
     z-index: 1000;
     padding: 0 2.5rem;
     box-sizing: border-box;
     color: #1a1f36;
-    border-bottom: 1px solid #e5e7eb;
+    background-color: transparent;
 }
 
 .navbar-brand {
@@ -20,8 +19,17 @@
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    justify-content: center;
+    width: 280px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 80px;
     letter-spacing: -0.025em;
+    border-right: 1px solid #e5e7eb;
+    background-color: white;
+    padding-left: 1.5rem; /* Match sidebar padding */
+    justify-content: flex-start; /* Align text to the left */
 }
 
 .navbar-brand a {
@@ -76,6 +84,7 @@
     border-radius: 8px;
     transition: all 0.15s ease !important;
     font-size: 0.875rem;
+    z-index: 900;
 }
 
 .admin-link:hover {
@@ -136,7 +145,9 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-left: 0.75rem;
+    margin-left: auto;
+    margin-right: 1rem;
+    z-index: 900;
 }
 
 .menu-button {
@@ -159,6 +170,7 @@
     position: relative;
     display: flex;
     align-items: center;
+    z-index: 900;
 }
 
 .user-dropdown-button {
@@ -166,8 +178,8 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.625rem 0.75rem;
-    background: none;
-    border: none;
+    background: white;
+    border: 1px solid #e5e7eb;
     cursor: pointer;
     color: #4b5563;
     font-size: 1rem;
@@ -190,8 +202,10 @@
 }
 
 .user-dropdown-button:hover {
-    background-color: #f3f4f6;
+    background-color: #f8fafc;
+    border-color: #d1d5db;
     color: #2563eb;
+    transform: translateY(-1px);
 }
 
 .user-dropdown-button:hover .chevron-icon {
@@ -284,13 +298,13 @@
 /* Sidebar Styles */
 .sidebar {
     position: fixed;
-    top: 80px;
+    top: 0;
     left: 0;
     width: 280px;
-    height: calc(100vh - 80px);
+    height: 100vh;
     background-color: white;
     border-right: 1px solid #e5e7eb;
-    padding: 1.5rem;
+    padding: 80px 1.5rem 1.5rem 1.5rem; /* top right bottom left */
     display: flex;
     flex-direction: column;
     z-index: 900;
@@ -298,10 +312,12 @@
 }
 
 .sidebar-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0 0 2rem 0;
+    font-size: 1.2rem;
+    font-weight: 00;
+    color: #798493;
+    margin: 0 0 1rem 0;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 1rem;
 }
 
 .sidebar-nav {
@@ -376,6 +392,15 @@
     border-color: #d1d5db;
 }
 
+.welcome-message {
+    font-size: 1.25rem;
+    color: #1f2937;
+    font-weight: 500;
+    margin-left: calc(280px + 7rem);
+    position: absolute;
+    left: 0;
+}
+
 @media (max-width: 768px) {
     .navbar {
         padding: 0 1.25rem;
@@ -383,8 +408,11 @@
 
     .navbar-brand {
         position: absolute;
+        width: auto;
         left: 50%;
         transform: translateX(-50%);
+        border-right: none;
+        background-color: transparent;
     }
 
     .desktop-menu {
@@ -544,6 +572,10 @@
 
     .sidebar.active {
         transform: translateX(0);
+    }
+
+    .welcome-message {
+        display: none; /* Hide on mobile */
     }
 }
 

@@ -74,10 +74,12 @@ function App() {
           return;
         }
 
+        // Parse user data first
+        const userData = JSON.parse(userStr);
+        
         // Verify the token with the backend
         const response = await api.get('/auth/verify');
         if (response.data.authenticated) {
-          const userData = JSON.parse(userStr);
           setIsAuthenticated(true);
           setIsAdmin(userData.role === 'admin');
           setUser(userData);
@@ -161,7 +163,7 @@ function App() {
               path="/signup"
               element={
                 <PublicRoute>
-                  <SignUp setIsAuthenticated={setIsAuthenticated} setIsAdmin={setIsAdmin} />
+                  <SignUp setIsAuthenticated={setIsAuthenticated} setIsAdmin={setIsAdmin} setUser={setUser} />
                 </PublicRoute>
               }
             />

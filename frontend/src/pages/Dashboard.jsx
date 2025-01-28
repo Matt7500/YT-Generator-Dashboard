@@ -678,7 +678,7 @@ function Dashboard({ isAuthenticated, activeTab, setActiveTab }) {
                             className="channel-list-avatar"/>
                           <div className="channel-list-info">
                             <div className="channel-list-name">{channel.title}</div>
-                            <div className="channel-list-handle">@{channel.customUrl || channel.id}</div>
+                            <div className="channel-list-handle">{channel.customUrl || channel.id}</div>
                           </div>
                         </div>
                       ))}
@@ -696,7 +696,7 @@ function Dashboard({ isAuthenticated, activeTab, setActiveTab }) {
                             className="modal-btn modal-btn-secondary"
                             onClick={handleConnectYouTube}
                           >
-                            Connect Another Account
+                            Add Account
                           </button>
                           <button 
                             className="modal-btn modal-btn-danger"

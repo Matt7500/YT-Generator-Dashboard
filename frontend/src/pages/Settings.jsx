@@ -90,6 +90,14 @@ const Settings = ({ isAuthenticated }) => {
         try {
             const response = await api.patch('/settings', { [field]: value });
             setSettings(response.data);
+            
+            // If we're updating the name, update it in localStorage too
+            if (field === 'name') {
+                const userData = JSON.parse(localStorage.getItem('user') || '{}');
+                userData.name = value;
+                localStorage.setItem('user', JSON.stringify(userData));
+            }
+            
             setSuccessMessage('Settings updated successfully');
             setTimeout(() => setSuccessMessage(''), 3000);
         } catch (err) {
