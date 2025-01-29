@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import api from '../utils/api';
+import { useAuth } from '../contexts/AuthContext';
 import '../css/SignUp.css';
 
-const SignUp = ({ setIsAuthenticated, setIsAdmin, setUser }) => {
+const SignUp = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,7 +14,7 @@ const SignUp = ({ setIsAuthenticated, setIsAdmin, setUser }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [passwordRequirements, setPasswordRequirements] = useState({
     minLength: false,
     hasUpperCase: false,
@@ -23,6 +23,7 @@ const SignUp = ({ setIsAuthenticated, setIsAdmin, setUser }) => {
     hasSpecialChar: false
   });
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   const validatePassword = (password) => {
     setPasswordRequirements({
@@ -44,55 +45,43 @@ const SignUp = ({ setIsAuthenticated, setIsAdmin, setUser }) => {
     if (name === 'password') {
       validatePassword(value);
     }
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
     
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('Please fill in all fields');
+      return;
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    // Check if all password requirements are met
+    const allRequirementsMet = Object.values(passwordRequirements).every(req => req);
+    if (!allRequirementsMet) {
+      setError('Password does not meet all requirements');
+      return;
+    }
+
     try {
-      // Basic validation
-      if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-        throw new Error('Please fill in all fields');
+      setError('');
+      setLoading(true);
+      const { data, error } = await signUp(formData.email, formData.password, formData.name);
+      
+      if (error) throw error;
+      
+      if (data) {
+        navigate('/verify-email');
       }
-      
-      if (formData.password !== formData.confirmPassword) {
-        throw new Error('Passwords do not match');
-      }
-
-      // Check if all password requirements are met
-      const allRequirementsMet = Object.values(passwordRequirements).every(req => req);
-      if (!allRequirementsMet) {
-        throw new Error('Password does not meet all requirements');
-      }
-
-      // Register user
-      const response = await api.post('/auth/register', {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password
-      });
-      
-      const data = response.data;
-
-      // Update authentication state and user data
-      setIsAuthenticated(true);
-      setIsAdmin(data.user.role === 'admin');
-      setUser(data.user);
-      
-      // Store user info in localStorage
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      console.log('Registration successful, redirecting...');
-      
-      // Navigate to dashboard
-      navigate('/dashboard', { replace: true });
-    } catch (err) {
-      console.error('Registration error:', err);
-      setError(err.response?.data?.message || 'Error creating account');
+    } catch (error) {
+      setError(error.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -202,9 +191,9 @@ const SignUp = ({ setIsAuthenticated, setIsAdmin, setUser }) => {
           <button 
             type="submit" 
             className="signup-button"
-            disabled={isLoading || !Object.values(passwordRequirements).every(req => req)}
+            disabled={loading || !Object.values(passwordRequirements).every(req => req) || !formData.email || !formData.name || !formData.confirmPassword}
           >
-            {isLoading ? 'Creating Account...' : 'Create Account'}
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 

@@ -1,12 +1,9 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  font-family: 'Inter', sans-serif;
+  line-height: 1;
+  font-weight: 500;
   color: #213547;
-  background-color: #ffffff;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
+  background-color: #f5f5f5;
   -moz-osx-font-smoothing: grayscale;
 }
 
@@ -25,7 +22,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #ffffff;
+  background-color: #f5f5f5;
   color: #213547;
 }
 
@@ -83,4 +80,90 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+:root[data-theme="light"] {
+  /* Background Colors */
+  --color-background: #ffffff;
+  --color-background-secondary: #f9fafb;
+  --color-background-tertiary: #f3f4f6;
+  
+  /* Text Colors */
+  --color-text-primary: #111827;
+  --color-text-secondary: #374151;
+  --color-text-tertiary: #6b7280;
+  
+  /* Border Colors */
+  --color-border: #e5e7eb;
+  --color-border-hover: #d1d5db;
+  
+  /* Interactive Colors */
+  --color-primary: #4338ca;
+  --color-primary-hover: #3730a3;
+  --color-danger: #EF4444;
+  --color-danger-hover: #DC2626;
+  --color-success: #10B981;
+  --color-success-hover: #059669;
+  
+  /* Component Colors */
+  --color-navbar-bg: #ffffff;
+  --color-sidebar-bg: #2061a3;
+  --color-card-bg: #ffffff;
+  --color-dropdown-bg: #ffffff;
+  --color-dropdown-hover: #f3f4f6;
+  
+  /* Shadow */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="dark"] {
+  /* Background Colors */
+  --color-background: #111827;
+  --color-background-secondary: #1f2937;
+  --color-background-tertiary: #374151;
+  
+  /* Text Colors */
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #e5e7eb;
+  --color-text-tertiary: #9ca3af;
+  
+  /* Border Colors */
+  --color-border: #374151;
+  --color-border-hover: #4b5563;
+  
+  /* Interactive Colors */
+  --color-primary: #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+  
+  /* Component Colors */
+  --color-navbar-bg: #1f2937;
+  --color-sidebar-bg: #111827;
+  --color-card-bg: #1f2937;
+  --color-dropdown-bg: #1f2937;
+  --color-dropdown-hover: #374151;
+  
+  /* Shadow */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* Base styles */
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Apply transitions for theme changes */
+* {
+  transition: background-color 0.3s ease, 
+              color 0.3s ease, 
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
 }

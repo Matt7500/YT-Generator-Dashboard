@@ -1,0 +1,26 @@
+.app {
+    min-height: 100vh;
+    background-color: #f9fafb;
+}
+
+.app-container {
+    display: flex;
+    padding-top: 80px; /* Height of the navbar */
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 280px; /* Width of the sidebar */
+    padding: 2rem;
+    min-height: calc(100vh - 80px); /* Viewport height minus navbar height */
+}
+
+/* Auth pages don't need sidebar margin */
+.main-content.auth-page {
+    margin-left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 4rem;
+    background-color: white;
+} 

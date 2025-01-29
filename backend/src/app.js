@@ -1,97 +1,38 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const session = require('express-session');
-const logger = require('./config/logger');
-const { 
-    sessionMiddleware, 
-    helmetMiddleware, 
-    csrfProtection, 
-    generateToken,
-    auditLog, 
-    errorLogger 
-} = require('./middleware/security.middleware');
-
-// Import routes
-const authRoutes = require('./routes/auth.routes');
-const userRoutes = require('./routes/user.routes');
-const adminRoutes = require('./routes/admin.routes');
-const settingsRoutes = require('./routes/settings.routes');
+const helmet = require('helmet');
+const morgan = require('morgan');
+require('dotenv').config();
 
 const app = express();
 
-// Security middleware
-app.use(helmetMiddleware);
-
-// Session configuration
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
-}));
-
-// Basic middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser(process.env.COOKIE_SECRET));
-
-// CORS configuration
+// Middleware
+app.use(helmet()); // Security headers
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token'],
-    exposedHeaders: ['x-csrf-token', 'set-cookie']
+  origin: process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:5173'  // Vite default port
+    : process.env.FRONTEND_URL,
+  credentials: true
 }));
-
-// Logging middleware
-app.use(auditLog);
-
-// CSRF protection for non-GET requests
-app.use((req, res, next) => {
-    if (req.method === 'GET') {
-        return next();
-    }
-    csrfProtection(req, res, next);
-});
-
-// Provide CSRF token
-app.get('/api/csrf-token', (req, res) => {
-    res.json({ token: generateToken(req, res) });
-});
+app.use(morgan('dev')); // Logging
+app.use(express.json()); // Parse JSON bodies
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/settings', settingsRoutes);
+app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/youtube', require('./routes/youtube.routes'));
 
-// Test endpoint
-app.get('/api/test', (req, res) => {
-    res.json({ message: 'Backend is working!' });
-});
-
-// Error handling
-app.use(errorLogger);
+// Error handling middleware
 app.use((err, req, res, next) => {
-    logger.error(err.stack);
-    res.status(err.status || 500).json({
-        message: process.env.NODE_ENV === 'production' 
-            ? 'Internal Server Error' 
-            : err.message
-    });
+  console.error(err.stack);
+  res.status(500).json({ 
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error' 
+  });
 });
 
-// Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-    logger.info(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
 });
 
 module.exports = app; 

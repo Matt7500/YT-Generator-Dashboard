@@ -1,550 +1,250 @@
-import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
-import api from '../utils/api';
+import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import '../css/Settings.css';
 
-const Settings = ({ isAuthenticated }) => {
-    const [settings, setSettings] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [successMessage, setSuccessMessage] = useState('');
+const Settings = () => {
+    const { user, userProfile } = useAuth();
+    const [displayName, setDisplayName] = useState(userProfile?.name || '');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [showPasswordForm, setShowPasswordForm] = useState(false);
-    const [platformConnections, setPlatformConnections] = useState([]);
-    const [youtubeConnection, setYoutubeConnection] = useState(null);
-    const [showEmailForm, setShowEmailForm] = useState(false);
-    const [newEmail, setNewEmail] = useState('');
-    const [emailChangePassword, setEmailChangePassword] = useState('');
-    const [showNameForm, setShowNameForm] = useState(false);
-    const [newName, setNewName] = useState('');
+    const [is2FAEnabled, setIs2FAEnabled] = useState(false);
+    const [qrCode, setQrCode] = useState(null);
+    const [verificationCode, setVerificationCode] = useState('');
+    const [connectedChannels, setConnectedChannels] = useState([
+        {
+            id: 'UC7_YxT-KID8kRbqZo7MyscQ',
+            name: 'Markiplier',
+            thumbnail: 'https://yt3.googleusercontent.com/ytc/AIf8zZTHUhGZ9-dpzql2Yx_oXHrQdSYuwO3wEBNRnAki=s176-c-k-c0x00ffffff-no-rj',
+            subscriberCount: '35.2M',
+            videoCount: '5,482'
+        },
+        {
+            id: 'UCX6OQ3DkcsbYNE6H8uQQuVA',
+            name: 'MrBeast',
+            thumbnail: 'https://yt3.googleusercontent.com/ytc/AIf8zZQqwA_vNmJBpV7BqaQGPQYT7Zq0-e8RYqyBmgPE=s176-c-k-c0x00ffffff-no-rj',
+            subscriberCount: '233M',
+            videoCount: '742'
+        },
+        {
+            id: 'UCsBjURrPoezykLs9EqgamOA',
+            name: 'Fireship',
+            thumbnail: 'https://yt3.googleusercontent.com/ytc/AIf8zZR7WJUt5BKN3vJWqbhxqk5zpu9kBPaXBGUGy1QkFg=s176-c-k-c0x00ffffff-no-rj',
+            subscriberCount: '2.51M',
+            videoCount: '893'
+        }
+    ]);
 
-    useEffect(() => {
-        const fetchSettings = async () => {
-            if (!isAuthenticated) {
-                setLoading(false);
-                return;
-            }
-
-            try {
-                console.log('Fetching settings...');
-                const response = await api.get('/settings');
-                console.log('Settings response:', response.data);
-                setSettings(response.data);
-                
-                console.log('Fetching platform connections...');
-                const platformsResponse = await api.get('/settings/platforms');
-                console.log('Platforms response:', platformsResponse.data);
-                setPlatformConnections(platformsResponse.data);
-                setError(null);
-            } catch (err) {
-                console.error('Error fetching settings:', err);
-                setError(err.response?.data?.message || 'Error fetching settings');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchSettings();
-    }, [isAuthenticated]);
-
-    // A helper to log new platform states for debugging
-    const setPlatformConnectionsWithLog = (newConnections) => {
-        console.log('Setting platform connections:', {
-            current: platformConnections,
-            new: newConnections
-        });
-        setPlatformConnections(newConnections);
-    };
-
-    useEffect(() => {
-        const youtube = platformConnections.find(p => p.platform === 'youtube');
-        console.log('Detecting changes to platformConnections, found youtube:', youtube);
-        setYoutubeConnection(youtube);
-    }, [platformConnections]);
-
-    const handlePasswordChange = async (e) => {
+    // Account Settings Handlers
+    const handleUpdateName = async (e) => {
         e.preventDefault();
-        if (newPassword !== confirmPassword) {
-            setError('New passwords do not match');
-            return;
-        }
-
-        try {
-            await api.post('/auth/change-password', {
-                currentPassword,
-                newPassword
-            });
-            setSuccessMessage('Password updated successfully');
-            setShowPasswordForm(false);
-            setCurrentPassword('');
-            setNewPassword('');
-            setConfirmPassword('');
-        } catch (err) {
-            setError(err.response?.data?.message || 'Error updating password');
-        }
+        // TODO: Implement name update logic
     };
 
-    const handleSettingChange = async (field, value) => {
-        try {
-            const response = await api.patch('/settings', { [field]: value });
-            setSettings(response.data);
-            
-            // If we're updating the name, update it in localStorage too
-            if (field === 'name') {
-                const userData = JSON.parse(localStorage.getItem('user') || '{}');
-                userData.name = value;
-                localStorage.setItem('user', JSON.stringify(userData));
-            }
-            
-            setSuccessMessage('Settings updated successfully');
-            setTimeout(() => setSuccessMessage(''), 3000);
-        } catch (err) {
-            console.error('Error updating settings:', err);
-            setError(err.response?.data?.message || 'Error updating settings');
-            setTimeout(() => setError(null), 3000);
-        }
-    };
-
-    const handleEmailChange = async (e) => {
+    const handleUpdatePassword = async (e) => {
         e.preventDefault();
-        try {
-            await api.patch('/settings', { email: newEmail });
-            setSettings(response => ({ ...response, email: newEmail }));
-            setSuccessMessage('Email updated successfully');
-            setTimeout(() => setSuccessMessage(''), 3000);
-        } catch (err) {
-            console.error('Error updating email:', err);
-            setError(err.response?.data?.message || 'Error updating email');
-            setTimeout(() => setError(null), 3000);
+        // TODO: Implement password update logic
+    };
+
+    const handleToggle2FA = async () => {
+        if (!is2FAEnabled) {
+            // TODO: Generate QR code and secret from Supabase
+            // setQrCode(response.data.qr_code);
+        } else {
+            // TODO: Disable 2FA
         }
     };
 
-    // Connect YouTube
-    const handleConnectYouTube = async () => {
-        try {
-            const response = await api.get('/auth/youtube/connect');
-            
-            // Position the popup roughly center screen
-            const width = 600;
-            const height = 600;
-            const left = (window.innerWidth - width) / 2;
-            const top = (window.innerHeight - height) / 2;
-
-            // Open the OAuth window
-            const authWindow = window.open(
-                response.data.authUrl,
-                'YouTube Authorization',
-                `width=${width},height=${height},left=${left},top=${top}`
-            );
-
-            // Refresh YouTube data after successful connection
-            const refreshYouTubeSection = async () => {
-                try {
-                    console.log('Refreshing YouTube section...');
-                    // Add a small delay to let the server store any new channels
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    const resPlatforms = await api.get('/settings/platforms');
-                    console.log('Updated platform connections response:', resPlatforms.data);
-                    
-                    const newYoutubeConn = resPlatforms.data.find(p => p.platform === 'youtube');
-                    const oldYoutubeConn = platformConnections.find(p => p.platform === 'youtube');
-
-                    console.log('Comparing old/new YouTube connections:', {
-                        old: oldYoutubeConn,
-                        new: newYoutubeConn
-                    });
-
-                    if (newYoutubeConn) {
-                        setPlatformConnectionsWithLog(resPlatforms.data);
-                        setSuccessMessage('Channel connected successfully');
-                        setTimeout(() => setSuccessMessage(''), 5000);
-                    } else {
-                        console.log('No YouTube connection found after refresh');
-                    }
-                } catch (err) {
-                    console.error('Error refreshing YouTube section:', err);
-                    setError('Failed to refresh YouTube channels');
-                    setTimeout(() => setError(null), 5000);
-                }
-            };
-
-            // Handler for receiving messages from the popup
-            const handleCallback = async (event) => {
-                console.log('handleCallback triggered, event:', {
-                    data: event.data,
-                    origin: event.origin,
-                    locationOrigin: window.location.origin
-                });
-
-                try {
-                    // Check for an object message
-                    if (typeof event.data === 'object') {
-                        if (event.data.type === 'youtube_success') {
-                            console.log('Got youtube_success message:', event.data);
-                            // Close the popup
-                            if (authWindow && !authWindow.closed) {
-                                authWindow.close();
-                            }
-                            // Refresh channels
-                            await refreshYouTubeSection();
-                            return;
-                        }
-                    }
-
-                    // Check for a legacy "success" string
-                    if (event.data === 'success') {
-                        console.log('Received legacy success message');
-                        if (authWindow && !authWindow.closed) {
-                            authWindow.close();
-                        }
-                        await refreshYouTubeSection();
-                    } else if (event.data === 'error') {
-                        console.error('Received error message from OAuth flow');
-                        setError('Failed to connect YouTube account');
-                    } else {
-                        console.log('Received unknown message:', event.data);
-                    }
-                } catch (err) {
-                    console.error('YouTube callback error:', err);
-                    setError('Failed to connect YouTube account');
-                }
-            };
-
-            // Add message listener
-            window.addEventListener('message', handleCallback);
-
-            // Poll if the user closes the popup manually
-            const checkInterval = setInterval(async () => {
-                try {
-                    if (!authWindow || authWindow.closed) {
-                        console.log('Auth window closed, checking for updates...');
-                        clearInterval(checkInterval);
-                        await refreshYouTubeSection();
-                    }
-                } catch (err) {
-                    console.log('Error checking window status, clearing interval:', err);
-                    clearInterval(checkInterval);
-                    await refreshYouTubeSection();
-                }
-            }, 500);
-
-            // Cleanup removes the message listener if user leaves the page
-            return () => {
-                window.removeEventListener('message', handleCallback);
-                clearInterval(checkInterval);
-            };
-        } catch (err) {
-            console.error('YouTube connection error:', err);
-            setError('Failed to initiate YouTube connection');
-        }
+    const handleVerify2FA = async (e) => {
+        e.preventDefault();
+        // TODO: Verify 2FA setup
     };
 
-    // Remove a single YouTube channel
-    const handleRemoveChannel = async (channelId) => {
-        try {
-            await api.delete(`/settings/youtube/channels/${channelId}`);
-            const refreshResponse = await api.get('/settings/platforms');
-            setPlatformConnections(refreshResponse.data);
-            setSuccessMessage('Channel removed successfully');
-        } catch (err) {
-            console.error('Failed to remove channel:', err);
-            setError('Failed to remove channel');
-        }
+    // Subscription Management Handlers
+    const handleManageSubscription = () => {
+        // TODO: Implement subscription management logic
     };
 
-    // Disconnect all YouTube channels
-    const handleDisconnectYouTube = async () => {
-        try {
-            await api.delete('/settings/platforms/youtube');
-            const refreshResponse = await api.get('/settings/platforms');
-            setPlatformConnections(refreshResponse.data);
-            setSuccessMessage('YouTube account disconnected successfully');
-        } catch (err) {
-            console.error('Failed to disconnect YouTube:', err);
-            setError('Failed to disconnect YouTube account');
-        }
+    // YouTube Account Management Handlers
+    const handleConnectYouTube = () => {
+        // TODO: Implement YouTube OAuth connection
+        // After successful connection, add the channel to connectedChannels
     };
 
-    const refreshPlatformConnections = async () => {
-        try {
-            const response = await api.get('/settings/platforms');
-            setPlatformConnectionsWithLog(response.data);
-            const newYoutubeConnection = response.data.find(p => p.platform === 'youtube');
-            setYoutubeConnection(newYoutubeConnection);
-        } catch (err) {
-            console.error('Error refreshing platform connections:', err);
-        }
+    const handleRemoveChannel = (channelId) => {
+        // TODO: Implement channel removal logic
+        setConnectedChannels(channels => 
+            channels.filter(channel => channel.id !== channelId)
+        );
     };
-
-    if (!isAuthenticated) {
-        return <Navigate to="/login" />;
-    }
-
-    if (loading) {
-        return <div className="settings-page loading"></div>;
-    }
 
     return (
-        <div className="settings-page">
-            <div className="settings-container">
-                <h1>Account Settings</h1>
-                
-                {successMessage && (
-                    <div className="success-message">{successMessage}</div>
-                )}
-                
-                {error && (
-                    <div className="error-message">{error}</div>
-                )}
+        <div className="settings-container">
+            <div className="settings-content">
 
-                <div className="settings-section">
-                    <h2>Profile Settings</h2>
-                    <div className="settings-grid">
-                        <div className="setting-item">
-                            <label>Email</label>
-                            <div className="setting-value-container">
-                                <div className="setting-value">{settings.email}</div>
-                                <button 
-                                    className="edit-btn"
-                                    onClick={() => setShowEmailForm(!showEmailForm)}
-                                >
-                                    Edit
-                                </button>
+                {/* Account Settings Section */}
+                <section className="settings-section">
+                    <h2>Account Settings</h2>
+                    
+                    {/* Display Name Form */}
+                    <div className="settings-card">
+                        <h3>Display Name</h3>
+                        <form onSubmit={handleUpdateName} className="settings-form">
+                            <div className="form-group">
+                                <label htmlFor="displayName">Name</label>
+                                <input
+                                    type="text"
+                                    id="displayName"
+                                    value={displayName}
+                                    onChange={(e) => setDisplayName(e.target.value)}
+                                    placeholder="Enter your name"
+                                />
                             </div>
-                            
-                            {showEmailForm && (
-                                <form onSubmit={handleEmailChange} className="settings-form">
-                                    <div className="form-group">
-                                        <label>New Email</label>
-                                        <input
-                                            type="email"
-                                            value={newEmail}
-                                            onChange={(e) => setNewEmail(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Password (to confirm)</label>
-                                        <input
-                                            type="password"
-                                            value={emailChangePassword}
-                                            onChange={(e) => setEmailChangePassword(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-buttons">
-                                        <button type="submit" className="save-btn">
-                                            Update Email
-                                        </button>
-                                        <button 
-                                            type="button" 
-                                            className="cancel-btn"
-                                            onClick={() => {
-                                                setShowEmailForm(false);
-                                                setNewEmail('');
-                                                setEmailChangePassword('');
-                                            }}
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </form>
-                            )}
-                        </div>
+                            <button type="submit" className="primary-button">
+                                Update Name
+                            </button>
+                        </form>
+                    </div>
 
-                        <div className="setting-item">
-                            <label>Name</label>
-                            <div className="setting-value-container">
-                                <div className="setting-value">{settings.name}</div>
-                                <button 
-                                    className="edit-btn"
-                                    onClick={() => setShowNameForm(!showNameForm)}
-                                >
-                                    Edit
-                                </button>
+                    {/* Password Update Form */}
+                    <div className="settings-card">
+                        <h3>Change Password</h3>
+                        <form onSubmit={handleUpdatePassword} className="settings-form">
+                            <div className="form-group">
+                                <label htmlFor="currentPassword">Current Password</label>
+                                <input
+                                    type="password"
+                                    id="currentPassword"
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    placeholder="Enter current password"
+                                />
                             </div>
-                            
-                            {showNameForm && (
-                                <form onSubmit={(e) => {
-                                    e.preventDefault();
-                                    handleSettingChange('name', newName);
-                                    setShowNameForm(false);
-                                    setNewName('');
-                                }} className="settings-form">
-                                    <div className="form-group">
-                                        <label>New Name</label>
-                                        <input
-                                            type="text"
-                                            value={newName}
-                                            onChange={(e) => setNewName(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-buttons">
-                                        <button type="submit" className="save-btn">
-                                            Update Name
-                                        </button>
-                                        <button 
-                                            type="button" 
-                                            className="cancel-btn"
-                                            onClick={() => {
-                                                setShowNameForm(false);
-                                                setNewName('');
-                                            }}
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </form>
-                            )}
-                        </div>
+                            <div className="form-group">
+                                <label htmlFor="newPassword">New Password</label>
+                                <input
+                                    type="password"
+                                    id="newPassword"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    placeholder="Enter new password"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="confirmPassword">Confirm New Password</label>
+                                <input
+                                    type="password"
+                                    id="confirmPassword"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="Confirm new password"
+                                />
+                            </div>
+                            <button type="submit" className="primary-button">
+                                Update Password
+                            </button>
+                        </form>
+                    </div>
 
-                        <div className="setting-item">
-                            <label>Two-Factor Authentication</label>
-                            <div className="setting-value-container">
-                                <div className="toggle-switch">
+                    {/* 2FA Settings */}
+                    <div className="settings-card">
+                        <h3>Two-Factor Authentication</h3>
+                        <div className="tfa-container">
+                            <div className="tfa-toggle">
+                                <label className="switch">
                                     <input
                                         type="checkbox"
-                                        checked={settings.two_factor_enabled}
-                                        onChange={(e) => handleSettingChange('two_factor_enabled', e.target.checked)}
+                                        checked={is2FAEnabled}
+                                        onChange={handleToggle2FA}
                                     />
-                                    <span className="toggle-slider"></span>
-                                </div>
-                                <p className="setting-description">
-                                    {settings.two_factor_enabled 
-                                        ? 'Two-factor authentication is enabled' 
-                                        : 'Enable two-factor authentication for additional security'}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="setting-item">
-                            <label>Password</label>
-                            <div className="setting-value-container">
-                                <div className="setting-value">••••••••</div>
-                                <button 
-                                    className="edit-btn"
-                                    onClick={() => setShowPasswordForm(!showPasswordForm)}
-                                >
-                                    Change Password
-                                </button>
+                                    <span className="slider round"></span>
+                                </label>
+                                <span>{is2FAEnabled ? 'Enabled' : 'Disabled'}</span>
                             </div>
                             
-                            {showPasswordForm && (
-                                <form onSubmit={handlePasswordChange} className="settings-form">
-                                    <div className="form-group">
-                                        <label>Current Password</label>
+                            {qrCode && !is2FAEnabled && (
+                                <div className="tfa-setup">
+                                    <img src={qrCode} alt="2FA QR Code" className="qr-code" />
+                                    <form onSubmit={handleVerify2FA} className="verification-form">
                                         <input
-                                            type="password"
-                                            value={currentPassword}
-                                            onChange={(e) => setCurrentPassword(e.target.value)}
-                                            required
+                                            type="text"
+                                            value={verificationCode}
+                                            onChange={(e) => setVerificationCode(e.target.value)}
+                                            placeholder="Enter verification code"
                                         />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>New Password</label>
-                                        <input
-                                            type="password"
-                                            value={newPassword}
-                                            onChange={(e) => setNewPassword(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Confirm New Password</label>
-                                        <input
-                                            type="password"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-buttons">
-                                        <button type="submit" className="save-btn">
-                                            Update Password
+                                        <button type="submit" className="primary-button">
+                                            Verify and Enable
                                         </button>
-                                        <button 
-                                            type="button" 
-                                            className="cancel-btn"
-                                            onClick={() => {
-                                                setShowPasswordForm(false);
-                                                setCurrentPassword('');
-                                                setNewPassword('');
-                                                setConfirmPassword('');
-                                            }}
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </form>
+                                    </form>
+                                </div>
                             )}
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <div className="settings-section">
-                    <h2>Connected Channels</h2>
-                    <div className="platform-connections">
-                        <div className="platform-card">
-                            <div className="platform-info">
-                                {youtubeConnection && youtubeConnection.channels.length > 0 ? (
-                                    <div className="connection-status connected">
-                                        <div className="channels-list">
-                                            {youtubeConnection.channels.map(channel => (
-                                                <div key={channel.id} className="channel-item">
-                                                    <img 
-                                                        src={channel.thumbnailUrl} 
-                                                        alt={channel.title} 
-                                                        className="channel-thumbnail"
-                                                    />
-                                                    <div className="channel-info">
-                                                        <h4>{channel.title}</h4>
-                                                        <p>{Number(channel.statistics.subscriberCount).toLocaleString()} subscribers</p>
-                                                    </div>
-                                                    <button
-                                                        className="remove-channel-btn"
-                                                        onClick={() => handleRemoveChannel(channel.id)}
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="connection-actions">
-                                            <button 
-                                                className="connect-btn"
-                                                onClick={handleConnectYouTube}
-                                            >
-                                                Connect Another Account
-                                            </button>
-                                            <button 
-                                                className="disconnect-btn"
-                                                onClick={handleDisconnectYouTube}
-                                            >
-                                                Disconnect All
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="connection-status">
-                                        <p className="connection-description">
-                                            Connect your YouTube accounts to manage your channels and generate content.
-                                        </p>
-                                        <button 
-                                            className="connect-btn"
-                                            onClick={handleConnectYouTube}
-                                        >
-                                            Connect Account
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                {/* Subscription Management Section */}
+                <section className="settings-section">
+                    <h2>Subscription Management</h2>
+                    <div className="settings-card">
+                        <div className="subscription-info">
+                            <h3>Current Plan: {userProfile?.subscription_tier || 'Free'}</h3>
+                            <p>Status: {userProfile?.subscription_status || 'Active'}</p>
+                            {userProfile?.subscription_end && (
+                                <p>Next billing date: {new Date(userProfile.subscription_end).toLocaleDateString()}</p>
+                            )}
                         </div>
+                        <button onClick={handleManageSubscription} className="primary-button">
+                            Manage Subscription
+                        </button>
                     </div>
-                </div>
+                </section>
+
+                {/* YouTube Account Management Section */}
+                <section className="settings-section">
+                    <h2>YouTube Accounts</h2>
+                    <div className="settings-card">
+                        <div className="youtube-accounts">
+                            {connectedChannels.length > 0 ? (
+                                <div className="channels-list">
+                                    {connectedChannels.map(channel => (
+                                        <div key={channel.id} className="channel-item">
+                                            <img 
+                                                src={channel.thumbnail} 
+                                                alt={`${channel.name} thumbnail`}
+                                                className="channel-thumbnail"
+                                            />
+                                            <div className="channel-info">
+                                                <h4>{channel.name}</h4>
+                                                <div className="channel-stats">
+                                                    <span>{channel.subscriberCount} subscribers</span>
+                                                    <span>•</span>
+                                                    <span>{channel.videoCount} videos</span>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => handleRemoveChannel(channel.id)}
+                                                className="remove-channel-btn"
+                                                title="Remove channel"
+                                            >
+                                                <svg viewBox="0 0 24 24" className="remove-icon">
+                                                    <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p>Connect your YouTube accounts to manage them through our platform.</p>
+                            )}
+                        </div>
+                        <button onClick={handleConnectYouTube} className="youtube-connect-button">
+                            <svg className="youtube-icon" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/>
+                            </svg>
+                            Connect YouTube Account
+                        </button>
+                    </div>
+                </section>
             </div>
         </div>
     );

@@ -1,104 +1,77 @@
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Enable Row Level Security
+ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
 
--- Users table
-CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL DEFAULT 'user',
-    is_verified BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- Create a table for user profiles
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- Sessions table for handling refresh tokens
-CREATE TABLE IF NOT EXISTS sessions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    refresh_token VARCHAR(255) UNIQUE NOT NULL,
-    user_agent TEXT,
-    ip_address VARCHAR(45),
-    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- Create a table for YouTube accounts
+CREATE TABLE IF NOT EXISTS public.youtube_accounts (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  channel_id TEXT NOT NULL,
+  channel_name TEXT NOT NULL,
+  channel_thumbnail TEXT,
+  access_token TEXT NOT NULL,
+  refresh_token TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  UNIQUE(user_id, channel_id)
 );
 
--- Password reset tokens
-CREATE TABLE IF NOT EXISTS password_reset_tokens (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    token VARCHAR(255) UNIQUE NOT NULL,
-    used BOOLEAN DEFAULT false,
-    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+-- Enable RLS on profiles
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Audit log for security events
-CREATE TABLE IF NOT EXISTS audit_logs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
-    event_type VARCHAR(50) NOT NULL,
-    ip_address VARCHAR(45),
-    user_agent TEXT,
-    details JSONB,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+-- Enable RLS on youtube_accounts
+ALTER TABLE public.youtube_accounts ENABLE ROW LEVEL SECURITY;
 
--- User Settings Table
-CREATE TABLE IF NOT EXISTS user_settings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    theme VARCHAR(20) DEFAULT 'light',
-    email_notifications BOOLEAN DEFAULT true,
-    two_factor_enabled BOOLEAN DEFAULT false,
-    two_factor_secret VARCHAR(255),
-    two_factor_backup_codes JSONB,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id)
-);
+-- Create policies for profiles
+CREATE POLICY "Users can view their own profile" 
+  ON public.profiles
+  FOR SELECT 
+  USING (auth.uid() = id);
 
--- Platform Connections Table (for future YouTube integration)
-CREATE TABLE IF NOT EXISTS platform_connections (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    platform VARCHAR(50) NOT NULL,
-    platform_user_id VARCHAR(255),
-    access_token TEXT,
-    refresh_token TEXT,
-    token_expires_at TIMESTAMP WITH TIME ZONE,
-    connected_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    last_used_at TIMESTAMP WITH TIME ZONE,
-    is_active BOOLEAN DEFAULT true,
-    metadata JSONB,
-    UNIQUE(user_id, platform)
-);
+CREATE POLICY "Users can update their own profile" 
+  ON public.profiles
+  FOR UPDATE 
+  USING (auth.uid() = id);
 
--- Function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+-- Create policies for youtube_accounts
+CREATE POLICY "Users can view their own YouTube accounts" 
+  ON public.youtube_accounts
+  FOR SELECT 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own YouTube accounts" 
+  ON public.youtube_accounts
+  FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own YouTube accounts" 
+  ON public.youtube_accounts
+  FOR UPDATE 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own YouTube accounts" 
+  ON public.youtube_accounts
+  FOR DELETE 
+  USING (auth.uid() = user_id);
+
+-- Create function to handle user creation
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
 BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
+  INSERT INTO public.profiles (id, name)
+  VALUES (new.id, new.raw_user_meta_data->>'name');
+  RETURN new;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger to automatically update updated_at
-CREATE TRIGGER update_users_updated_at
-    BEFORE UPDATE ON users
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
--- Trigger for user_settings
-CREATE TRIGGER update_user_settings_updated_at
-    BEFORE UPDATE ON user_settings
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_refresh_token ON sessions(refresh_token);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_event_type ON audit_logs(event_type);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at); 
+-- Create trigger for new user creation
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user(); 

@@ -1,43 +1,25 @@
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import '../css/NavBar.css'
+import '../css/NavBar.css';
 
-const NavBar = ({ isAuthenticated, isAdmin, onLogout, user, activeTab, setActiveTab, setIsOpen }) => {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+const NavBar = () => {
+    const { user, userProfile, signOut } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
+    const closeTimeoutRef = useRef(null);
     const dropdownRef = useRef(null);
+    const navigate = useNavigate();
 
-    const toggleMenu = () => {
-        setIsMenuOpen(!isMenuOpen);
-        if (isDropdownOpen) setIsDropdownOpen(false);
-    };
-
-    const toggleDropdown = () => {
-        setIsDropdownOpen(!isDropdownOpen);
-    };
-
-    const handleCreateAll = () => {
-        // TODO: Implement create for all functionality
-        console.log('Create for all clicked');
-        setIsSidebarOpen(false); // Close sidebar after action on mobile
-    };
-
-    const handleEditChannels = () => {
-        setIsOpen(true);
-        setIsSidebarOpen(false); // Close sidebar after action on mobile
-    };
-
-    const handleTabClick = (tab) => {
-        setActiveTab(tab);
-        setIsSidebarOpen(false); // Close sidebar after action on mobile
-    };
-
-    // Close dropdown when clicking outside
+    // Handle click outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsDropdownOpen(false);
+                if (isDropdownOpen) {
+                    handleDropdownToggle();
+                }
             }
         };
 
@@ -45,181 +27,166 @@ const NavBar = ({ isAuthenticated, isAdmin, onLogout, user, activeTab, setActive
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
+    }, [isDropdownOpen]);
+
+    // Get display name from profile or email
+    const getDisplayName = () => {
+        const capitalizeWords = (str) => {
+            return str.split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+        };
+
+        if (userProfile?.name) return capitalizeWords(userProfile.name);
+        if (user?.email) {
+            // Extract name from email and capitalize (e.g., "John" from "john@example.com")
+            const name = user.email.split('@')[0];
+            return capitalizeWords(name);
+        }
+        return 'there'; // Fallback
+    };
+
+    const isAdmin = userProfile?.role === 'admin';
+
+    console.log('NavBar render:', { 
+        user, 
+        userProfile, 
+        isAdmin,
+        userRole: userProfile?.role || 'no role'
+    });
+
+    const handleDropdownToggle = () => {
+        if (isDropdownOpen) {
+            setIsClosing(true);
+            closeTimeoutRef.current = setTimeout(() => {
+                setIsDropdownOpen(false);
+                setIsClosing(false);
+            }, 200); // Match this with the animation duration
+        } else {
+            setIsDropdownOpen(true);
+        }
+    };
+
+    const handleSignOut = async () => {
+        try {
+            handleDropdownToggle(); // Close dropdown first
+            const { error } = await signOut();
+            
+            if (error) {
+                console.error('Error signing out:', error);
+                return;
+            }
+
+            // Clear any remaining auth state
+            window.localStorage.clear();
+            
+            // Force a complete page reload and navigation
+            window.location.replace('/login');
+        } catch (error) {
+            console.error('Error signing out:', error);
+        }
+    };
+
+    const handleSettingsClick = () => {
+        handleDropdownToggle();
+    };
+
+    // Clean up timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (closeTimeoutRef.current) {
+                clearTimeout(closeTimeoutRef.current);
+            }
+        };
     }, []);
 
     return (
-        <>
-            <nav className="navbar">
-                {/* Hamburger Menu Button */}
-                <button 
-                    className={`hamburger-menu ${isSidebarOpen ? 'active' : ''}`}
-                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                >
-                    <span className="hamburger-icon"></span>
-                </button>
-
-                <div className="navbar-brand">
-                    <Link to="/">YT Manager</Link>
-                </div>
-
-                {isAuthenticated && (
-                    <div className="welcome-message">
-                        Welcome, {user?.name || 'User'}!
-                    </div>
-                )}
-
-                {isAdmin && <span className="admin-badge">Admin</span>}
-
-                {/* Desktop Menu */}
-                <div className="navbar-menu desktop-menu">
-                    {isAuthenticated ? (
-                        <>
-                            {isAdmin && (
-                                <Link to="/admin" className="nav-link admin-link">
-                                    Admin Dashboard
-                                </Link>
-                            )}
-                            <div className="user-dropdown" ref={dropdownRef}>
-                                <button 
-                                    className="user-dropdown-button"
-                                    onClick={toggleDropdown}
-                                >
-                                    <svg 
-                                        className="person-icon"
-                                        width="20" 
-                                        height="20" 
-                                        viewBox="0 0 20 20" 
-                                        fill="currentColor"
-                                    >
-                                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                                    </svg>
-                                    <span>Account</span>
-                                    <svg 
-                                        className="chevron-icon"
-                                        width="16" 
-                                        height="16" 
-                                        viewBox="0 0 20 20" 
-                                        fill="currentColor"
-                                        style={{
-                                            transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
-                                            transition: 'transform 0.2s ease'
-                                        }}
-                                    >
-                                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                                    </svg>
-                                </button>
-                                <div className={`user-dropdown-content ${isDropdownOpen ? 'active' : ''}`}>
-                                    <div className="dropdown-user-info">
-                                        <div className="user-name">{user?.name || 'User'}</div>
-                                        <div className="user-email">{user?.email}</div>
-                                    </div>
-                                    <div className="dropdown-divider"></div>
-                                    <Link to="/settings" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
-                                        Settings
-                                    </Link>
-                                    <div className="dropdown-divider"></div>
-                                    <button 
-                                        className="dropdown-item danger"
-                                        onClick={onLogout}
-                                    >
-                                        Logout
-                                    </button>
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <Link to="/login" className="nav-link">Login</Link>
-                            <Link to="/signup" className="nav-link-signup">Sign Up</Link>
-                        </>
-                    )}
-                </div>
-
-                {/* Mobile Account Button */}
-                {isAuthenticated && (
-                    <button 
-                        className="mobile-account-button"
-                        onClick={toggleMenu}
-                    >
-                        <svg 
-                            className="person-icon"
-                            width="24" 
-                            height="24" 
-                            viewBox="0 0 20 20" 
-                            fill="currentColor"
+        <nav className="navbar">
+            <div className="brand">
+                <Link to="/" className="logo">YT Manager</Link>
+            </div>
+            
+            <div className="welcome-message">
+                Welcome, {getDisplayName()}!
+            </div>
+            
+            <div className="profile-section">
+                {user ? (
+                    <div className="profile-dropdown" ref={dropdownRef}>
+                        {isAdmin && <span className="admin-badge">Admin</span>}
+                        <button 
+                            className="profile-button"
+                            onClick={handleDropdownToggle}
                         >
-                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                        </svg>
-                    </button>
-                )}
-
-                {/* Mobile Menu */}
-                <div className={`mobile-menu ${isMenuOpen ? 'active' : ''}`}>
-                    {isAuthenticated ? (
-                        <div className="mobile-menu-content">
-                            <div className="mobile-user-info">
-                                <div className="user-name">{user?.name || 'User'}</div>
-                                <div className="user-email">{user?.email}</div>
-                            </div>
-                            {isAdmin && (
-                                <Link to="/admin" className="mobile-menu-item admin" onClick={() => setIsMenuOpen(false)}>
-                                    Admin Dashboard
-                                </Link>
-                            )}
-                            <Link to="/settings" className="mobile-menu-item" onClick={() => setIsMenuOpen(false)}>
-                                Settings
-                            </Link>
-                            <button 
-                                className="mobile-menu-item danger"
-                                onClick={() => {
-                                    setIsMenuOpen(false);
-                                    onLogout();
-                                }}
+                            <svg
+                                className="account-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
                             >
-                                Logout
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="mobile-menu-content">
-                            <Link to="/login" className="mobile-menu-item" onClick={() => setIsMenuOpen(false)}>
-                                Login
-                            </Link>
-                            <Link to="/signup" className="mobile-menu-item signup" onClick={() => setIsMenuOpen(false)}>
-                                Sign Up
-                            </Link>
-                        </div>
-                    )}
-                </div>
-            </nav>
-
-            {isAuthenticated && (
-                <div className={`sidebar ${isSidebarOpen ? 'active' : ''}`}>
-                    <h3 className="sidebar-title">Channel Manager</h3>
-                    <div className="sidebar-nav">
-                        <div 
-                            className={`sidebar-nav-item ${activeTab === 'channels' ? 'active' : ''}`}
-                            onClick={() => handleTabClick('channels')}
-                        >
-                            <span>Channels</span>
-                        </div>
-                        <div 
-                            className={`sidebar-nav-item ${activeTab === 'analytics' ? 'active' : ''}`}
-                            onClick={() => handleTabClick('analytics')}
-                        >
-                            <span>Analytics</span>
-                        </div>
-                    </div>
-                    <div className="sidebar-bottom">
-                        <button className="create-all-btn" onClick={handleCreateAll}>
-                            Create For All
+                                <path
+                                    d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"
+                                    fill="currentColor"
+                                />
+                            </svg>
+                            <span className="profile-label">Account</span>
+                            <svg
+                                className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`}
+                                width="12"
+                                height="12"
+                                viewBox="0 0 12 12"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    d="M2.5 4.5L6 8L9.5 4.5"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
                         </button>
-                        <button className="edit-channels-btn" onClick={handleEditChannels}>
-                            Edit Channels
-                        </button>
+                        {isDropdownOpen && (
+                            <div className={`dropdown-menu ${isClosing ? 'closing' : ''}`}>
+                                <div className="dropdown-user-info">
+                                    <div className="user-name">{getDisplayName()}</div>
+                                    <div className="user-email">{user?.email}</div>
+                                </div>
+                                <div className="dropdown-divider"></div>
+                                {isAdmin && (
+                                    <>
+                                        <Link to="/admin-dashboard" className="dropdown-item">
+                                            Admin Dashboard
+                                        </Link>
+                                        <div className="dropdown-divider"></div>
+                                    </>
+                                )}
+                                <Link to="/settings" className="dropdown-item" onClick={handleSettingsClick}>
+                                    Settings
+                                </Link>
+                                <button onClick={toggleTheme} className="dropdown-item theme-toggle">
+                                    {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+                                </button>
+                                <div className="dropdown-divider"></div>
+                                <button onClick={handleSignOut} className="dropdown-item sign-out-btn">
+                                    Sign Out
+                                </button>
+                            </div>
+                        )}
                     </div>
-                </div>
-            )}
-        </>
+                ) : (
+                    <div className="auth-buttons">
+                        <Link to="/login" className="login-btn">
+                            Log In
+                        </Link>
+                        <Link to="/signup" className="signup-btn">
+                            Sign Up
+                        </Link>
+                    </div>
+                )}
+            </div>
+        </nav>
     );
 };
 

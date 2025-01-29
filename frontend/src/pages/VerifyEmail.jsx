@@ -1,96 +1,63 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { supabase } from '../config/supabase';
 import '../css/VerifyEmail.css';
 
 const VerifyEmail = () => {
-    const [searchParams] = useSearchParams();
-    const [verificationStatus, setVerificationStatus] = useState('verifying');
-    const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const verifyEmail = async () => {
-            try {
-                const token = searchParams.get('token');
-                const userId = searchParams.get('userId');
+        const handleEmailVerification = async () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const hashParams = new URLSearchParams(hash.substring(1));
+                const token = hashParams.get('access_token');
+                
+                if (token) {
+                    const { error } = await supabase.auth.verifyOtp({
+                        token_hash: token,
+                        type: 'email'
+                    });
 
-                if (!token || !userId) {
-                    setVerificationStatus('error');
-                    setError('Invalid verification link');
-                    return;
-                }
-
-                const response = await fetch(
-                    `http://localhost:5000/api/auth/verify-email?token=${token}&userId=${userId}`,
-                    {
-                        method: 'GET',
-                        credentials: 'include'
+                    if (!error) {
+                        // Successfully verified email
+                        navigate('/dashboard');
+                        return;
                     }
-                );
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.message || 'Verification failed');
                 }
-
-                setVerificationStatus('success');
-            } catch (err) {
-                console.error('Verification error:', err);
-                setVerificationStatus('error');
-                setError(err.message || 'Error verifying email');
             }
         };
 
-        verifyEmail();
-    }, [searchParams]);
-
-    const renderContent = () => {
-        switch (verificationStatus) {
-            case 'verifying':
-                return (
-                    <div className="verification-status">
-                        <div className="loading-spinner"></div>
-                        <p>Verifying your email address...</p>
-                    </div>
-                );
-            
-            case 'success':
-                return (
-                    <div className="verification-status success">
-                        <div className="success-icon">✓</div>
-                        <h2>Email Verified!</h2>
-                        <p>Your email has been successfully verified.</p>
-                        <Link to="/login" className="verify-proceed-button">
-                            Proceed to Login
-                        </Link>
-                    </div>
-                );
-            
-            case 'error':
-                return (
-                    <div className="verification-status error">
-                        <div className="error-icon">✕</div>
-                        <h2>Verification Failed</h2>
-                        <p>{error}</p>
-                        <p>
-                            If you're having trouble, you can request a new verification link on the{' '}
-                            <Link to="/login" className="verify-text-link">
-                                login page
-                            </Link>
-                            .
-                        </p>
-                    </div>
-                );
-            
-            default:
-                return null;
-        }
-    };
+        handleEmailVerification();
+    }, [navigate]);
 
     return (
         <div className="verify-email-container">
             <div className="verify-email-box">
-                {renderContent()}
+                <h1>Check Your Email</h1>
+                <p className="email-sent-to">
+                    We've sent a verification link to your email address
+                </p>
+                <div className="instructions">
+                    <h2>Next Steps:</h2>
+                    <ol>
+                        <li>Check your email inbox</li>
+                        <li>Check your spam/junk folder if not found in inbox</li>
+                        <li>Click the verification link in the email</li>
+                        <li>Once verified, you'll be able to sign in</li>
+                    </ol>
+                </div>
+                <div className="help-text">
+                    <p>
+                        Didn't receive the email? Check your spam folder or{' '}
+                        <Link to="/signup" className="resend-link">try signing up again</Link>
+                    </p>
+                </div>
+                <div className="navigation-links">
+                    <Link to="/login" className="login-link">
+                        Back to Login
+                    </Link>
+                </div>
             </div>
         </div>
     );

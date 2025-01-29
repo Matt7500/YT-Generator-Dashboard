@@ -1,62 +1,109 @@
-import axios from 'axios';
+import { supabase } from '../config/supabase';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+// Base URL for backend API
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
-const api = axios.create({
-    baseURL: `${BACKEND_URL}/api`,
-    withCredentials: true,
-    headers: {
-        'Content-Type': 'application/json'
-    }
-});
+// Helper function to handle API responses
+const handleResponse = async (response) => {
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Something went wrong');
+  }
+  return response.json();
+};
 
-// Request interceptor to add CSRF token
-api.interceptors.request.use(async (config) => {
-    // Only add CSRF token for non-GET requests
-    if (config.method !== 'get') {
-        try {
-            // Get CSRF token if we don't have one
-            if (!api.csrfToken) {
-                const response = await axios.get(`${BACKEND_URL}/api/csrf-token`, {
-                    withCredentials: true
-                });
-                api.csrfToken = response.data.token;
-            }
-            // Add token to headers
-            config.headers['x-csrf-token'] = api.csrfToken;
-        } catch (error) {
-            console.error('Error fetching CSRF token:', error);
-        }
-    }
-    return config;
-});
+// API functions for authentication
+export const auth = {
+  getCurrentUser: async () => {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    return user;
+  },
 
-// Response interceptor to handle errors
-api.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-        if (error.response) {
-            // Handle 401 (Unauthorized)
-            if (error.response.status === 401) {
-                // Redirect to login page if not authenticated
-                window.location.href = '/login';
-                return Promise.reject(error);
-            }
-            
-            // Handle 403 (CSRF token expired)
-            if (error.response.status === 403 && error.response.data?.error === 'invalid csrf token') {
-                // Clear the stored token
-                api.csrfToken = null;
-                // Retry the request
-                const config = error.config;
-                // Remove the old CSRF token
-                delete config.headers['x-csrf-token'];
-                // Retry the request
-                return api(config);
-            }
-        }
-        return Promise.reject(error);
-    }
-);
+  getSession: async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    return session;
+  }
+};
 
-export default api; 
+// API functions for user profile
+export const profile = {
+  get: async () => {
+    const user = await auth.getCurrentUser();
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  update: async (updates) => {
+    const user = await auth.getCurrentUser();
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+};
+
+// API functions for YouTube accounts
+export const youtube = {
+  getAccounts: async () => {
+    const user = await auth.getCurrentUser();
+    const { data, error } = await supabase
+      .from('youtube_accounts')
+      .select('*')
+      .eq('user_id', user.id);
+    
+    if (error) throw error;
+    return data;
+  },
+
+  addAccount: async (accountData) => {
+    const user = await auth.getCurrentUser();
+    const { data, error } = await supabase
+      .from('youtube_accounts')
+      .insert([{ ...accountData, user_id: user.id }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  updateAccount: async (accountId, updates) => {
+    const { data, error } = await supabase
+      .from('youtube_accounts')
+      .update(updates)
+      .eq('id', accountId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  deleteAccount: async (accountId) => {
+    const { error } = await supabase
+      .from('youtube_accounts')
+      .delete()
+      .eq('id', accountId);
+    
+    if (error) throw error;
+  }
+};
+
+export default {
+  auth,
+  profile,
+  youtube
+}; 

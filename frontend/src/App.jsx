@@ -1,161 +1,49 @@
 import './App.css'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
-import Dashboard from './pages/Dashboard'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import NavBar from './components/NavBar'
+import AuthNavBar from './components/AuthNavBar'
+import Sidebar from './components/Sidebar'
 import Login from './pages/Login'
 import SignUp from './pages/SignUp'
-import PasswordReset from './pages/PasswordReset'
 import VerifyEmail from './pages/VerifyEmail'
-import AdminDashboard from './pages/AdminDashboard'
+import Dashboard from './pages/Dashboard'
 import Settings from './pages/Settings'
-import { useState, useEffect } from 'react'
-import api from './utils/api'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 
-// Protected Route Component for admin-only routes
-const AdminRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('user') !== null;
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = user.role === 'admin';
-  
-  if (!isAuthenticated) {
-    console.log('Not authenticated, redirecting to login');
-    return <Navigate to="/login" replace />;
-  }
-
-  if (!isAdmin) {
-    console.log('Not admin, redirecting to dashboard');
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return children;
-};
-
-// Protected Route Component for authenticated users
-const PrivateRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('user') !== null;
-  
-  if (!isAuthenticated) {
-    console.log('Not authenticated, redirecting to login');
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-};
-
-// Public Route Component (redirects to dashboard if already authenticated)
+// Public Route Component (accessible only when not logged in)
 const PublicRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('user') !== null;
-  
-  if (isAuthenticated) {
-    console.log('Already authenticated, redirecting to dashboard');
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return children;
+  const { user } = useAuth();
+  return user ? <Navigate to="/dashboard" /> : children;
 };
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('channels');
+// Protected Route Component (accessible only when logged in)
+const ProtectedRoute = ({ children }) => {
+  const { user } = useAuth();
+  const location = useLocation();
+  
+  return user ? children : <Navigate to="/login" state={{ from: location }} replace />;
+};
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Check if we have a user in localStorage
-        const userStr = localStorage.getItem('user');
-        if (!userStr) {
-          setIsAuthenticated(false);
-          setIsAdmin(false);
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        // Parse user data first
-        const userData = JSON.parse(userStr);
-        
-        // Verify the token with the backend
-        const response = await api.get('/auth/verify');
-        if (response.data.authenticated) {
-          setIsAuthenticated(true);
-          setIsAdmin(userData.role === 'admin');
-          setUser(userData);
-        } else {
-          // Token is invalid, clear localStorage
-          localStorage.removeItem('user');
-          setIsAuthenticated(false);
-          setIsAdmin(false);
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Auth verification error:', error);
-        localStorage.removeItem('user');
-        setIsAuthenticated(false);
-        setIsAdmin(false);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
-    setIsAdmin(false);
-    setUser(null);
-  };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+// Layout wrapper component
+const AppLayout = () => {
+  const location = useLocation();
+  const { user } = useAuth();
+  const isAuthPage = ['/login', '/signup', '/verify-email'].includes(location.pathname);
 
   return (
-    <Router>
-      <div className="app">
-        <NavBar 
-          isAuthenticated={isAuthenticated} 
-          isAdmin={isAdmin} 
-          onLogout={handleLogout}
-          user={user}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
-        <main className="app-content">
+    <div className="app">
+      {isAuthPage ? <AuthNavBar /> : <NavBar />}
+      <div className="app-container">
+          {!isAuthPage && user && <Sidebar />}
+        <main className={`main-content ${isAuthPage ? 'auth-page' : ''}`}>
           <Routes>
-            {/* Protected Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute>
-                  <Dashboard 
-                    isAuthenticated={isAuthenticated}
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                  />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminDashboard isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
-                </AdminRoute>
-              }
-            />
-
             {/* Public Routes */}
             <Route
               path="/login"
               element={
                 <PublicRoute>
-                  <Login setIsAuthenticated={setIsAuthenticated} setIsAdmin={setIsAdmin} />
+                  <Login />
                 </PublicRoute>
               }
             />
@@ -163,7 +51,7 @@ function App() {
               path="/signup"
               element={
                 <PublicRoute>
-                  <SignUp setIsAuthenticated={setIsAuthenticated} setIsAdmin={setIsAdmin} setUser={setUser} />
+                  <SignUp />
                 </PublicRoute>
               }
             />
@@ -171,37 +59,51 @@ function App() {
               path="/verify-email"
               element={<VerifyEmail />}
             />
+
+            {/* Protected Routes */}
             <Route
-              path="/reset-password"
+              path="/dashboard"
               element={
-                <PublicRoute>
-                  <PasswordReset />
-                </PublicRoute>
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
               }
             />
-
-            {/* Settings Route */}
             <Route
               path="/settings"
               element={
-                <PrivateRoute>
-                  <Settings isAuthenticated={isAuthenticated} />
-                </PrivateRoute>
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
               }
             />
 
-            {/* Catch all route - redirect to dashboard or login based on auth status */}
+            {/* Default Route */}
+            <Route
+              path="/"
+              element={<Navigate to="/dashboard" replace />}
+            />
             <Route
               path="*"
-              element={
-                isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
-              }
+              element={<Navigate to="/dashboard" replace />}
             />
           </Routes>
         </main>
       </div>
-    </Router>
-  )
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <ThemeProvider>
+        <Router>
+            <AppLayout />
+        </Router>
+      </ThemeProvider>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
