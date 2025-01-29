@@ -4,7 +4,6 @@
     display: grid;
     grid-template-columns: 280px 1fr;
     background-color: #f5f5f5;
-    padding-top: 80px;
 }
 
 .sidebar-spacer {
@@ -20,7 +19,8 @@
 
 .dashboard-header {
     margin-bottom: 2.5rem;
-    padding: 0 1rem;
+    padding-top: 1.7rem;
+    padding-bottom: 1rem;
 }
 
 .dashboard-header h1 {
@@ -114,7 +114,6 @@
     white-space: nowrap;
     flex-shrink: 0;
     height: fit-content;
-    align-self: flex-start;
 }
 
 .platform-badge svg {
@@ -259,5 +258,376 @@
 @keyframes spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+.connect-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(255, 107, 166, 0.1) 0%, rgba(255, 142, 83, 0.1) 100%);
+    border: 2px dashed rgba(255, 107, 166, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.connect-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 107, 166, 0.15) 0%, rgba(255, 142, 83, 0.15) 33%, rgba(255, 107, 166, 0.15) 66%, rgba(255, 142, 83, 0.15) 100%);
+    background-size: 300% 300%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.connect-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 107, 166, 0.4);
+}
+
+.connect-card:hover::before {
+    opacity: 1;
+    animation: connectGradientMove 3s ease infinite;
+}
+
+.connect-card-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.connect-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff6ba6 0%, #FF8E53 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.connect-card-content h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.connect-card-content p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.modal-backdrop.closing {
+    animation: fadeOut 0.3s ease forwards;
+}
+
+.modal {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    position: relative;
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+    animation: slideIn 0.3s ease forwards;
+}
+
+.modal.closing {
+    animation: slideOut 0.3s ease forwards;
+}
+
+.modal-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.modal-header p {
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.platform-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.platform-option {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.platform-option:hover {
+    border-color: #2061a3;
+    transform: translateY(-2px);
+}
+
+.platform-option.youtube {
+    background: white;
+    border: 2px solid #e5e7eb;
+    position: relative;
+    overflow: hidden;
+}
+
+.platform-option.youtube .platform-icon {
+    background: linear-gradient(135deg, #ff0000 0%, #ff4e45 100%);
+    color: white;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.platform-option.youtube:hover {
+    border-color: transparent;
+    transform: translateY(-2px);
+}
+
+.platform-option.youtube::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 2px;
+    background: linear-gradient(135deg, #ff0000 0%, #ff4e45 100%);
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.platform-option.youtube::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 0, 0, 0.15) 0%, rgba(255, 78, 69, 0.15) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.platform-option.youtube:hover::before {
+    opacity: 1;
+    background: linear-gradient(135deg, #ff0000 0%, #ff4e45 33%, #ff0000 66%, #ff4e45 100%);
+    background-size: 300% 300%;
+    animation: gradientMove 3s ease infinite;
+}
+
+.platform-option.youtube:hover::after {
+    opacity: 1;
+}
+
+.platform-option h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.platform-option p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    text-align: center;
+    margin: 0;
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: scale(0.95) translateY(10px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.95) translateY(10px);
+        opacity: 0;
+    }
+}
+
+.platform-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.platform-option.tiktok {
+    background: white;
+    border: 2px solid #e5e7eb;
+    position: relative;
+    overflow: hidden;
+}
+
+.platform-option.tiktok .platform-icon {
+    background: linear-gradient(135deg, #00f2ea 0%, #ff0050 100%);
+    color: white;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.platform-option.tiktok:hover {
+    border-color: transparent;
+    transform: translateY(-2px);
+}
+
+.platform-option.tiktok::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 2px;
+    background: linear-gradient(135deg, #00f2ea 0%, #ff0050 100%);
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.platform-option.tiktok::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0, 242, 234, 0.15) 0%, rgba(255, 0, 79, 0.15) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+@keyframes gradientMove {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.platform-option.tiktok:hover::before {
+    opacity: 1;
+    background: linear-gradient(135deg, #00f2ea 0%, #ff0050 33%, #00f2ea 66%, #ff0050 100%);
+    background-size: 300% 300%;
+    animation: gradientMove 3s ease infinite;
+}
+
+.platform-option.tiktok:hover::after {
+    opacity: 1;
+}
+
+@keyframes connectGradientMove {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
     }
 }
