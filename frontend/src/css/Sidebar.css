@@ -1,3 +1,8 @@
+:root {
+    --button-gradient: linear-gradient(135deg, #ff6ba6 0%, #FF8E53 50%, #FF8E53 50%, #ff6ba6 100%);
+    --nav-gradient: linear-gradient(135deg, #ff6ba6 0%, #FF8E53 50%, #FF8E53 50%, #ff6ba6 100%);
+}
+
 .sidebar {
     width: 280px;
     height: 100vh;
@@ -9,6 +14,7 @@
     left: 0;
     padding: 100px 2rem 2rem;
     overflow-y: auto;
+    border-right: 1px solid #e5e7eb;
 }
 
 .sidebar-header h1 {
@@ -21,7 +27,7 @@
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
 .nav-item {
@@ -32,19 +38,27 @@
     text-decoration: none;
     font-size: 16px;
     font-weight: 500;
-    border-radius: 6px;
-    transition: all 0.15s ease;
+    border-radius: 8px;
+    transition: all 0.2s ease;
     margin: 1px 0;
 }
 
 .nav-item:hover {
-    background-color: #eff0f1;
-    color: #1a1f36;
+    background-color: #f3f4f6;
+    color: #1f2937;
 }
 
 .nav-item.active {
-    background-color: #e2eeff;
+    background-image: var(--nav-gradient);
+    background-size: 200% 200%;
+    background-position: 0% 0%;
+    color: #ffffff;
     font-weight: 500;
+    transition: all 0.3s ease, background-position 0.5s ease;
+}
+
+.nav-item.active:hover {
+    background-position: 100% 100%;
 }
 
 .sidebar-footer {
@@ -55,35 +69,47 @@
     gap: 12px;
 }
 
-.create-all-btn, .edit-channels-link {
+.create-all-btn, 
+.edit-channels-link {
     padding: 14px 20px;
     border-radius: 10px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
+    text-align: center;
+    border: none;
 }
 
 .create-all-btn {
-    background-color: #4669e5;
+    background-size: 200% 200%;
+    background-image: var(--button-gradient);
+    background-position: 0% 0%;
     color: white;
+    transition: all 0.3s ease, background-position 0.5s ease;
 }
 
 .create-all-btn:hover {
-    background-color: #4460c4;
-}
-
-.create-all-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    background-position: 100% 100%;
+    box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+    transform: translateY(-1px);
 }
 
 .edit-channels-link {
-    background-color: #eaeaec;
-    color: #1f2329;
+    background-color: #f3f4f6;
+    color: #1f2937;
+    text-decoration: none;
 }
 
 .edit-channels-link:hover {
-    color: #1a1f36;
-    background-color: #d9d9df;
+    background-color: #e5e7eb;
+}
+
+.edit-channels-link.active {
+    background-color: #2061a3;
+    color: white;
+}
+
+.edit-channels-link.active:hover {
+    background-color: #1a4c82;
 } 

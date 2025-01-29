@@ -1,0 +1,44 @@
+.callback-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.callback-loading {
+    text-align: center;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: var(--card-background);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.callback-loading::after {
+    content: '';
+    display: block;
+    width: 30px;
+    height: 30px;
+    margin: 20px auto 0;
+    border: 3px solid var(--primary-color);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+.callback-error {
+    text-align: center;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: var(--error-background);
+    color: var(--error-text);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+} 

@@ -82,9 +82,13 @@ button:focus-visible {
   }
 }
 
+:root {
+  --button-gradient: linear-gradient(135deg, #ff6ba6 0%, #FF8E53 100%);
+}
+
 :root[data-theme="light"] {
   /* Background Colors */
-  --color-background: #ffffff;
+  --color-background: #f5f5f5;
   --color-background-secondary: #f9fafb;
   --color-background-tertiary: #f3f4f6;
   
@@ -98,8 +102,8 @@ button:focus-visible {
   --color-border-hover: #d1d5db;
   
   /* Interactive Colors */
-  --color-primary: #4338ca;
-  --color-primary-hover: #3730a3;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1649b7;
   --color-danger: #EF4444;
   --color-danger-hover: #DC2626;
   --color-success: #10B981;

@@ -12,8 +12,14 @@ const Sidebar = () => {
             
             <nav className="sidebar-nav">
                 <Link 
+                    to="/dashboard" 
+                    className={`nav-item ${location.pathname === '/dashboard' || location.pathname === '/' ? 'active' : ''}`}
+                >
+                    Dashboard
+                </Link>
+                <Link 
                     to="/channels" 
-                    className={`nav-item ${location.pathname === '/dashboard' ? 'active' : ''}`}
+                    className={`nav-item ${location.pathname === '/channels' ? 'active' : ''}`}
                 >
                     Channels
                 </Link>
@@ -23,13 +29,22 @@ const Sidebar = () => {
                 >
                     Analytics
                 </Link>
+                <Link 
+                    to="/settings" 
+                    className={`nav-item ${location.pathname === '/settings' ? 'active' : ''}`}
+                >
+                    Settings
+                </Link>
             </nav>
 
             <div className="sidebar-footer">
                 <button className="create-all-btn">
                     Create For All
                 </button>
-                <Link to="/edit-channels" className="edit-channels-link">
+                <Link 
+                    to="/edit-channels" 
+                    className={`edit-channels-link ${location.pathname === '/edit-channels' ? 'active' : ''}`}
+                >
                     Edit Channels
                 </Link>
             </div>

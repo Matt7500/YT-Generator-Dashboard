@@ -7,6 +7,9 @@
   padding: 1rem;
   margin: 0;
   box-sizing: border-box;
+  position: relative;
+  overflow-y: auto;
+  max-height: 100vh;
 }
 
 .signup-box {
@@ -16,8 +19,31 @@
   width: 100%;
   max-width: 550px;
   border: 1px solid #e5e7eb;
-  max-height: calc(100vh - 2rem);
-  overflow-y: auto;
+  height: fit-content;
+}
+
+/* Customize scrollbar for modern browsers */
+.signup-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.signup-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.signup-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+.signup-container::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* Firefox scrollbar styling */
+.signup-container {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
 }
 
 .signup-box h1 {
@@ -38,6 +64,7 @@
 
 .form-group {
   margin-bottom: 1.25rem;
+  position: relative;
 }
 
 .form-group label {
@@ -169,11 +196,26 @@
 }
 
 .password-requirements {
-  margin-top: 0.75rem;
-  padding: 1rem;
+  position: absolute;
+  left: calc(100% + 3rem);
+  top: 0px;
+  width: 450px;
+  z-index: 10;
+  padding: 0;
   background-color: #f8fafc;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.password-requirements.visible {
+  padding: 1rem;
+  max-height: 300px;
+  opacity: 1;
 }
 
 .password-requirements h4 {
@@ -217,4 +259,65 @@
 .password-requirements li.invalid::before {
   background-color: #d1d5db;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z'/%3E%3C/svg%3E");
+}
+
+@media (max-width: 1024px) {
+  .password-requirements {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.divider span {
+  padding: 0 10px;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.google-signup-button {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: white;
+  color: #374151;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.google-signup-button:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.google-signup-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.google-signup-button svg {
+  font-size: 1.25rem;
 }

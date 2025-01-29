@@ -22,7 +22,7 @@
 .auth-logo {
     font-size: 1.5rem;
     font-weight: 500;
-    color: rgb(0, 136, 255);
+    color: #2563eb;
     text-decoration: none;
     transition: color 0.2s;
 }
@@ -43,12 +43,12 @@
 }
 
 .auth-nav-btn.login {
-    color: #4b5563;
+    color: #1f2937;
 }
 
 .auth-nav-btn.login:hover {
-    color: #1f2937;
-    background-color: #f3f4f6;
+    color: #2563eb;
+    background-color: #f0f3ff;
 }
 
 .auth-nav-btn.signup {

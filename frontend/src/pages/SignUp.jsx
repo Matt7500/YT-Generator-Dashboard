@@ -1,20 +1,22 @@
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { useAuth } from '../contexts/AuthContext';
+import { FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa';
 import '../css/SignUp.css';
+import { useState } from 'react';
+import { userAuth } from '../contexts/AuthContext.jsx';
 
 const SignUp = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [passwordRequirements, setPasswordRequirements] = useState({
     minLength: false,
     hasUpperCase: false,
@@ -22,8 +24,8 @@ const SignUp = () => {
     hasNumber: false,
     hasSpecialChar: false
   });
-  const navigate = useNavigate();
-  const { signUp } = useAuth();
+
+  const { signUp, signInWithGoogle } = userAuth();
 
   const validatePassword = (password) => {
     setPasswordRequirements({
@@ -35,57 +37,62 @@ const SignUp = () => {
     });
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-
-    if (name === 'password') {
-      validatePassword(value);
-    }
-    if (error) setError('');
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError('Please fill in all fields');
-      return;
-    }
-    
-    if (formData.password !== formData.confirmPassword) {
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    if (password !== confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
 
-    // Check if all password requirements are met
-    const allRequirementsMet = Object.values(passwordRequirements).every(req => req);
-    if (!allRequirementsMet) {
-      setError('Password does not meet all requirements');
+    if (!passwordRequirements.minLength || !passwordRequirements.hasUpperCase || 
+        !passwordRequirements.hasLowerCase || !passwordRequirements.hasNumber || 
+        !passwordRequirements.hasSpecialChar) {
+      setError('Password does not meet the requirements');
+      setIsLoading(false);
       return;
     }
 
     try {
-      setError('');
-      setLoading(true);
-      const { data, error } = await signUp(formData.email, formData.password, formData.name);
-      
+      const { data, error } = await signUp({ email, password, name });
       if (error) throw error;
       
-      if (data) {
-        navigate('/verify-email');
-      }
+      setSuccess('Account created successfully');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
     } catch (error) {
       setError(error.message);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setIsGoogleLoading(true);
+    setError('');
+    try {
+      await signInWithGoogle();
+      // The redirect will be handled by Supabase
+    } catch (error) {
+      setError(error.message);
+      setIsGoogleLoading(false);
     }
   };
 
   const getRequirementColor = (isValid) => isValid ? 'valid' : 'invalid';
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(prevState => !prevState);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(prevState => !prevState);
+  };
 
   return (
     <div className="signup-container">
@@ -93,17 +100,17 @@ const SignUp = () => {
         <h1>Create Account</h1>
         <p className="subtitle">Please fill in your details to sign up</p>
         
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+
         <form onSubmit={handleSubmit}>
-          {error && <div className="error-message">{error}</div>}
-          
           <div className="form-group">
             <label htmlFor="name">Name</label>
             <input
+              onChange={(e) => setName(e.target.value)}
               type="text"
               id="name"
               name="name"
-              value={formData.name}
-              onChange={handleChange}
               placeholder="Enter your name"
               required
             />
@@ -112,11 +119,10 @@ const SignUp = () => {
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
+              onChange={(e) => setEmail(e.target.value)}
               type="email"
               id="email"
               name="email"
-              value={formData.email}
-              onChange={handleChange}
               placeholder="Enter your email"
               required
             />
@@ -129,21 +135,26 @@ const SignUp = () => {
                 type={showPassword ? "text" : "password"}
                 id="password"
                 name="password"
-                value={formData.password}
-                onChange={handleChange}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  validatePassword(e.target.value);
+                }}
+                onFocus={() => setIsPasswordFocused(true)}
+                onBlur={() => setIsPasswordFocused(false)}
                 placeholder="Enter your password"
                 required
               />
               <button
                 type="button"
                 className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={togglePasswordVisibility}
                 tabIndex="-1"
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
-            <div className="password-requirements">
+            <div className={`password-requirements ${isPasswordFocused ? 'visible' : ''}`}>
               <h4>Password Requirements:</h4>
               <ul>
                 <li className={getRequirementColor(passwordRequirements.minLength)}>
@@ -172,15 +183,15 @@ const SignUp = () => {
                 type={showConfirmPassword ? "text" : "password"}
                 id="confirmPassword"
                 name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
                 required
               />
               <button
                 type="button"
                 className="password-toggle"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                onClick={toggleConfirmPasswordVisibility}
                 tabIndex="-1"
               >
                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
@@ -191,9 +202,23 @@ const SignUp = () => {
           <button 
             type="submit" 
             className="signup-button"
-            disabled={loading || !Object.values(passwordRequirements).every(req => req) || !formData.email || !formData.name || !formData.confirmPassword}
+            disabled={isLoading}
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {isLoading ? 'Creating Account...' : 'Create Account'}
+          </button>
+
+          <div className="divider">
+            <span>or</span>
+          </div>
+
+          <button
+            type="button"
+            className="google-signup-button"
+            onClick={handleGoogleSignUp}
+            disabled={isGoogleLoading}
+          >
+            <FaGoogle />
+            {isGoogleLoading ? 'Connecting...' : 'Continue with Google'}
           </button>
         </form>
 

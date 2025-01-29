@@ -55,6 +55,7 @@
   align-items: center;
   position: relative;
   padding-left: 2rem;
+  padding-right: 1rem;
   margin: 0;
 }
 
@@ -142,7 +143,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: var(--color-background);
+  background: white;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   cursor: pointer;
@@ -155,6 +156,7 @@
 .profile-button:hover {
   color: var(--color-text-primary);
   border-color: var(--color-border-hover);
+  background: #f9fafb;
 }
 
 .profile-button:focus {
@@ -184,7 +186,7 @@
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  background-color: var(--color-dropdown-bg);
+  background-color: #ffffff;
   border-radius: 8px;
   border: 1px solid var(--color-border);
   min-width: 240px;
@@ -260,6 +262,11 @@
   cursor: pointer;
   transition: all 0.15s ease;
   border-radius: 0;
+  outline: none;
+}
+
+.dropdown-item:focus {
+  outline: none;
 }
 
 .dropdown-item:last-child {
@@ -284,6 +291,11 @@
   font-size: 0.875rem;
   transition: all 0.2s ease;
   border-radius: 0;
+  outline: none;
+}
+
+.sign-out-btn:focus {
+  outline: none;
 }
 
 .sign-out-btn:hover {
@@ -291,10 +303,6 @@
   color: var(--color-danger);
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
-}
-
-.sign-out-btn:focus {
-  outline: none;
 }
 
 .auth-buttons {
@@ -334,6 +342,11 @@
 .theme-toggle {
   color: var(--color-text-secondary);
   border-radius: 0;
+  outline: none;
+}
+
+.theme-toggle:focus {
+  outline: none;
 }
 
 .theme-toggle:hover {

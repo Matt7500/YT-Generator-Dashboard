@@ -1,26 +1,14 @@
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
-const isDevelopment = process.env.NODE_ENV === 'development';
-
-const supabaseUrl = isDevelopment 
-  ? process.env.SUPABASE_URL_DEV 
-  : process.env.SUPABASE_URL_PROD;
-
-const supabaseKey = isDevelopment 
-  ? process.env.SUPABASE_SERVICE_KEY_DEV 
-  : process.env.SUPABASE_SERVICE_KEY_PROD;
+const supabaseUrl = process.env.SUPABASE_URL_DEV;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY_DEV;
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase credentials');
+    throw new Error('Missing Supabase credentials. Please check your .env file.');
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  }
-});
+console.log('Initializing Supabase client with URL:', supabaseUrl);
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 module.exports = supabase; 
