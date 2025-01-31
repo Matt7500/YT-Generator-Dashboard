@@ -14,6 +14,7 @@ import { ProtectedRoute, AuthRoute, CallbackRoute } from './components/Protected
 import { AuthContextProvider } from './contexts/AuthContext';
 import { useState } from 'react';
 import YouTubeCallback from './pages/YouTubeCallback';
+import AuthCallback from './pages/AuthCallback';
 
 // Layout wrapper component
 const AppLayout = () => {
@@ -79,6 +80,24 @@ const AppLayout = () => {
               } 
             />
 
+            {/* Callback Routes */}
+            <Route 
+              path="/auth/callback" 
+              element={
+                <CallbackRoute>
+                  <AuthCallback />
+                </CallbackRoute>
+              } 
+            />
+            <Route 
+              path="/auth/youtube/callback" 
+              element={
+                <CallbackRoute>
+                  <YouTubeCallback />
+                </CallbackRoute>
+              } 
+            />
+
             {/* Default Routes */}
             <Route 
               path="/" 
@@ -90,16 +109,6 @@ const AppLayout = () => {
               } 
             />
             <Route path="*" element={<Navigate to="/login" replace />} />
-
-            {/* New Route */}
-            <Route 
-              path="/auth/youtube/callback" 
-              element={
-                <CallbackRoute>
-                  <YouTubeCallback />
-                </CallbackRoute>
-              } 
-            />
           </Routes>
         </main>
       </div>
@@ -109,13 +118,13 @@ const AppLayout = () => {
 
 function App() {
   return (
-    <AuthContextProvider>
-      <ThemeProvider>
-        <Router>
+    <Router>
+      <AuthContextProvider>
+        <ThemeProvider>
           <AppLayout />
-        </Router>
-      </ThemeProvider>
-    </AuthContextProvider>
+        </ThemeProvider>
+      </AuthContextProvider>
+    </Router>
   );
 }
 

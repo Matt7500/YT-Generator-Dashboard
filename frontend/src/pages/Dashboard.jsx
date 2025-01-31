@@ -10,11 +10,47 @@ const Dashboard = () => {
     const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
+    const [loadedImages, setLoadedImages] = useState({});
     const { session } = userAuth();
 
     useEffect(() => {
         loadChannels();
     }, []);
+
+    // Preload images when channels are loaded
+    useEffect(() => {
+        channels.forEach(channel => {
+            if (channel.thumbnail_url) {
+                // Initialize loading state to false for this channel
+                setLoadedImages(prev => ({
+                    ...prev,
+                    [channel.channel_id]: false
+                }));
+
+                const img = new Image();
+                img.src = channel.thumbnail_url;
+                img.onload = () => {
+                    setLoadedImages(prev => ({
+                        ...prev,
+                        [channel.channel_id]: true
+                    }));
+                };
+                img.onerror = () => {
+                    // Try different image sizes and formats on error
+                    if (img.src.includes('=s240-c-k-c0x00ffffff-no-rj')) {
+                        img.src = img.src.split('=')[0];
+                    } else if (img.src.includes('yt3.ggpht.com') || img.src.includes('googleusercontent.com')) {
+                        img.src = `${img.src.split('=')[0]}=s240-c-k-c0x00ffffff-no-rj`;
+                    } else {
+                        setLoadedImages(prev => ({
+                            ...prev,
+                            [channel.channel_id]: false
+                        }));
+                    }
+                };
+            }
+        });
+    }, [channels]);
 
     const loadChannels = async () => {
         try {
@@ -27,7 +63,7 @@ const Dashboard = () => {
                 .eq('user_id', session?.user?.id);
 
             if (error) throw error;
-            setChannels(channels);
+            setChannels(channels || []);
         } catch (error) {
             console.error('Error loading channels:', error);
             setError('Failed to load channels');
@@ -68,15 +104,50 @@ const Dashboard = () => {
         <div key={channel.channel_id} className="channel-card">
             <div className="channel-card-header">
                 <div className="channel-info">
-                    <img 
-                        src={channel.thumbnail_url || '/default-channel.png'} 
-                        alt={`${channel.channel_name} thumbnail`}
-                        className="channel-thumbnail"
-                        onError={(e) => {
-                            e.target.onerror = null; // Prevent infinite loop
-                            e.target.src = '/default-channel.png';
-                        }}
-                    />
+                    <div className="channel-thumbnail-wrapper">
+                        {loadedImages[channel.channel_id] === false && (
+                            <div className="thumbnail-placeholder pulse" />
+                        )}
+                        <img 
+                            src={channel.thumbnail_url || '/default-channel.png'} 
+                            alt={`${channel.channel_name} thumbnail`}
+                            className={`channel-thumbnail ${loadedImages[channel.channel_id] ? 'loaded' : ''}`}
+                            loading="lazy"
+                            onError={(e) => {
+                                const currentSrc = e.target.src;
+                                
+                                // Don't retry if we're already on the default image
+                                if (currentSrc === '/default-channel.png') {
+                                    setLoadedImages(prev => ({
+                                        ...prev,
+                                        [channel.channel_id]: false
+                                    }));
+                                    return;
+                                }
+
+                                // Try different image sizes and formats
+                                if (currentSrc.includes('=s240-c-k-c0x00ffffff-no-rj')) {
+                                    e.target.src = currentSrc.split('=')[0];
+                                } else if (currentSrc.includes('yt3.ggpht.com') || currentSrc.includes('googleusercontent.com')) {
+                                    e.target.src = `${currentSrc.split('=')[0]}=s240-c-k-c0x00ffffff-no-rj`;
+                                } else {
+                                    e.target.src = '/default-channel.png';
+                                    setLoadedImages(prev => ({
+                                        ...prev,
+                                        [channel.channel_id]: false
+                                    }));
+                                }
+                            }}
+                            onLoad={(e) => {
+                                if (e.target.src !== '/default-channel.png') {
+                                    setLoadedImages(prev => ({
+                                        ...prev,
+                                        [channel.channel_id]: true
+                                    }));
+                                }
+                            }}
+                        />
+                    </div>
                     <div className="channel-name-wrapper">
                         <h2>{channel.channel_name}</h2>
                     </div>
@@ -135,11 +206,15 @@ const Dashboard = () => {
     const renderConnectCard = () => (
         <div className="channel-card connect-card" onClick={handleConnectChannel}>
             <div className="connect-card-content">
-                <div className="connect-icon">
-                    <FaPlus />
+                <div className="connect-card-header">
+                    <div className="connect-icon">
+                        <FaPlus />
+                    </div>
+                    <h2>Connect Channel</h2>
                 </div>
-                <h2>Connect Channel</h2>
-                <p>Add a new YouTube or TikTok channel</p>
+                <div className="connect-card-description">
+                    <p>Add a new YouTube or TikTok channel</p>
+                </div>
             </div>
         </div>
     );

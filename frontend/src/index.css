@@ -111,7 +111,7 @@ button:focus-visible {
   
   /* Component Colors */
   --color-navbar-bg: #ffffff;
-  --color-sidebar-bg: #2061a3;
+  --color-sidebar-bg: #ffffff;
   --color-card-bg: #ffffff;
   --color-dropdown-bg: #ffffff;
   --color-dropdown-hover: #f3f4f6;
@@ -123,37 +123,37 @@ button:focus-visible {
 
 :root[data-theme="dark"] {
   /* Background Colors */
-  --color-background: #111827;
-  --color-background-secondary: #1f2937;
-  --color-background-tertiary: #374151;
+  --color-background: #1a1b25;
+  --color-background-secondary: #22242f;
+  --color-background-tertiary: #2a2c3a;
   
   /* Text Colors */
-  --color-text-primary: #f9fafb;
-  --color-text-secondary: #e5e7eb;
-  --color-text-tertiary: #9ca3af;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #f0f0f5;
+  --color-text-tertiary: #b4b4c0;
   
   /* Border Colors */
-  --color-border: #374151;
-  --color-border-hover: #4b5563;
+  --color-border: #2f3142;
+  --color-border-hover: #3d3f54;
   
   /* Interactive Colors */
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-danger: #ef4444;
-  --color-danger-hover: #dc2626;
-  --color-success: #10b981;
-  --color-success-hover: #059669;
+  --color-primary: #ff6ba6;
+  --color-primary-hover: #ff8e53;
+  --color-danger: #ff4d6e;
+  --color-danger-hover: #ff3557;
+  --color-success: #00d9a6;
+  --color-success-hover: #00bf92;
   
   /* Component Colors */
-  --color-navbar-bg: #1f2937;
-  --color-sidebar-bg: #111827;
-  --color-card-bg: #1f2937;
-  --color-dropdown-bg: #1f2937;
-  --color-dropdown-hover: #374151;
+  --color-navbar-bg: #22242f;
+  --color-sidebar-bg: #1a1b25;
+  --color-card-bg: #22242f;
+  --color-dropdown-bg: #22242f;
+  --color-dropdown-hover: #2a2c3a;
   
   /* Shadow */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
 }
 
 /* Base styles */

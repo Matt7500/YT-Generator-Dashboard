@@ -598,14 +598,16 @@ const Settings = () => {
                                                 <img
                                                     src={account.thumbnail_url || '/default-channel.png'}
                                                     alt={`${account.channel_name} thumbnail`}
-                                                    className="channel-thumbnail"
+                                                    className={`channel-thumbnail ${account.thumbnail_url ? '' : 'loaded'}`}
                                                     loading="lazy"
+                                                    onLoad={(e) => e.target.classList.add('loaded')}
                                                     onError={(e) => {
                                                         if (!e.target.retryAttempt) {
                                                             e.target.retryAttempt = true;
                                                             e.target.src = account.thumbnail_url;
                                                         } else {
                                                             e.target.src = '/default-channel.png';
+                                                            e.target.classList.add('loaded');
                                                             e.target.onerror = null;
                                                         }
                                                     }}
@@ -656,14 +658,16 @@ const Settings = () => {
                                                 <img
                                                     src={account.avatar_url || '/default-tiktok.png'}
                                                     alt={account.username}
-                                                    className="channel-thumbnail"
+                                                    className={`channel-thumbnail ${account.avatar_url ? '' : 'loaded'}`}
                                                     loading="lazy"
+                                                    onLoad={(e) => e.target.classList.add('loaded')}
                                                     onError={(e) => {
                                                         if (!e.target.retryAttempt) {
                                                             e.target.retryAttempt = true;
                                                             e.target.src = account.avatar_url;
                                                         } else {
                                                             e.target.src = '/default-tiktok.png';
+                                                            e.target.classList.add('loaded');
                                                             e.target.onerror = null;
                                                         }
                                                     }}

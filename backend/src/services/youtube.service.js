@@ -89,7 +89,7 @@ class YouTubeService {
     console.log('Using access token:', accessToken.substring(0, 10) + '...');
     
     const response = await fetch(
-      `${this.apiBase}/channels?part=id,snippet,statistics&mine=true`,
+      `${this.apiBase}/channels?part=id,snippet,statistics,brandingSettings&mine=true`,
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -110,12 +110,34 @@ class YouTubeService {
     }
 
     const channelData = data.items[0];
+
+    // If the channel has a custom branding image, try to get it
+    let bestThumbnailUrl = null;
+    
+    // Try to get the high-quality channel branding image first
+    if (channelData.brandingSettings?.image?.bannerExternalUrl) {
+      bestThumbnailUrl = `${channelData.brandingSettings.image.bannerExternalUrl}=s240-c-k-c0x00ffffff-no-rj`;
+    }
+    
+    // Fallback to profile pictures in descending quality
+    if (!bestThumbnailUrl) {
+      const thumbnails = channelData.snippet?.thumbnails || {};
+      bestThumbnailUrl = thumbnails.high?.url || 
+                        thumbnails.medium?.url || 
+                        thumbnails.default?.url;
+    }
+
+    // Add the best thumbnail URL to the channel data
+    channelData.bestThumbnailUrl = bestThumbnailUrl;
+
     console.log('Channel data received:', {
       id: channelData.id,
       title: channelData.snippet?.title,
       description: channelData.snippet?.description?.substring(0, 100) + '...',
       customUrl: channelData.snippet?.customUrl,
+      hasBrandingImage: !!channelData.brandingSettings?.image?.bannerExternalUrl,
       thumbnails: Object.keys(channelData.snippet?.thumbnails || {}),
+      bestThumbnailUrl: bestThumbnailUrl,
       statistics: {
         subscriberCount: channelData.statistics?.subscriberCount,
         videoCount: channelData.statistics?.videoCount,
@@ -136,6 +158,7 @@ class YouTubeService {
         title: channelData.snippet?.title,
         customUrl: channelData.snippet?.customUrl,
         thumbnails: Object.keys(channelData.snippet?.thumbnails || {}),
+        bestThumbnailUrl: channelData.bestThumbnailUrl,
         statistics: channelData.statistics
       });
       console.log('Tokens:', {
@@ -162,10 +185,7 @@ class YouTubeService {
         user_id: userId,
         channel_id: channelData.id,
         channel_name: channelData.snippet.title,
-        thumbnail_url: channelData.snippet.thumbnails?.high?.url || 
-                      channelData.snippet.thumbnails?.medium?.url || 
-                      channelData.snippet.thumbnails?.default?.url || 
-                      null,
+        thumbnail_url: channelData.bestThumbnailUrl,
         subscriber_count: parseInt(channelData.statistics?.subscriberCount) || 0,
         video_count: parseInt(channelData.statistics?.videoCount) || 0,
         view_count: parseInt(channelData.statistics?.viewCount) || 0,

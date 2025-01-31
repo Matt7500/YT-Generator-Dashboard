@@ -21,13 +21,13 @@
   margin: 0;
   font-size: 1.75rem;
   font-weight: 600;
-  color: #1a1f36;
+  color: #202734;
   margin-bottom: 0.5rem;
   letter-spacing: -0.025em;
 }
 
-.subtitle {
-  color: #6b7280;
+.login-box p {
+  color: #202734;
   margin-bottom: 2rem;
   font-size: 0.9375rem;
   line-height: 1.5;
