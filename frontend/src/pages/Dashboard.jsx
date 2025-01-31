@@ -69,9 +69,13 @@ const Dashboard = () => {
             <div className="channel-card-header">
                 <div className="channel-info">
                     <img 
-                        src={channel.thumbnail_url} 
+                        src={channel.thumbnail_url || '/default-channel.png'} 
                         alt={`${channel.channel_name} thumbnail`}
                         className="channel-thumbnail"
+                        onError={(e) => {
+                            e.target.onerror = null; // Prevent infinite loop
+                            e.target.src = '/default-channel.png';
+                        }}
                     />
                     <div className="channel-name-wrapper">
                         <h2>{channel.channel_name}</h2>

@@ -162,7 +162,10 @@ class YouTubeService {
         user_id: userId,
         channel_id: channelData.id,
         channel_name: channelData.snippet.title,
-        thumbnail_url: channelData.snippet.thumbnails?.high?.url || channelData.snippet.thumbnails?.default?.url || null,
+        thumbnail_url: channelData.snippet.thumbnails?.high?.url || 
+                      channelData.snippet.thumbnails?.medium?.url || 
+                      channelData.snippet.thumbnails?.default?.url || 
+                      null,
         subscriber_count: parseInt(channelData.statistics?.subscriberCount) || 0,
         video_count: parseInt(channelData.statistics?.videoCount) || 0,
         view_count: parseInt(channelData.statistics?.viewCount) || 0,
