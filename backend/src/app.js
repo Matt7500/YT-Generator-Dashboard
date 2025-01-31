@@ -1,9 +1,10 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-require('dotenv').config();
-const youtubeRoutes = require('./routes/youtube.routes');
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import 'dotenv/config';
+import youtubeRoutes from './routes/youtube.routes.js';
+import authRoutes from './routes/auth.routes.js';
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.use(morgan('dev')); // Logging
 app.use(express.json()); // Parse JSON bodies
 
 // Routes
-app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/auth', authRoutes);
 app.use('/api/youtube', youtubeRoutes);
 
 // Error handling middleware
@@ -43,4 +44,4 @@ app.listen(PORT, () => {
   });
 });
 
-module.exports = app; 
+export default app; 

@@ -1,9 +1,9 @@
-const supabase = require('../config/supabase');
+import { supabase } from '../config/supabase.js';
 
 /**
  * Middleware to verify if the user is authenticated
  */
-const requireAuth = async (req, res, next) => {
+export const requireAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     
@@ -29,8 +29,4 @@ const requireAuth = async (req, res, next) => {
     console.error('Auth middleware error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-};
-
-module.exports = {
-  requireAuth
 }; 

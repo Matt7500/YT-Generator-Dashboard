@@ -174,22 +174,26 @@
 .platform-badge.youtube {
     background-color: rgba(220, 38, 38, 0.1);
     color: #ff4d4d;
+    border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 .platform-badge.tiktok {
     background-color: rgba(37, 244, 238, 0.1);
     color: #00f2ea;
+    border: 1px solid rgba(37, 244, 238, 0.2);
 }
 
 @media (prefers-color-scheme: dark) {
     .platform-badge.youtube {
         background-color: rgba(220, 38, 38, 0.15);
         color: #ff6b6b;
+        border: 1px solid rgba(220, 38, 38, 0.3);
     }
 
     .platform-badge.tiktok {
         background-color: rgba(37, 244, 238, 0.15);
         color: #25f4ee;
+        border: 1px solid rgba(37, 244, 238, 0.3);
     }
 }
 
@@ -259,16 +263,24 @@
 .action-button svg {
     width: 20px;
     height: 20px;
+    transition: all 0.2s ease;
 }
 
 .settings-button {
     background-color: var(--color-background-tertiary);
     color: var(--color-text-secondary);
+    transition: all 0.2s ease;
 }
 
 .settings-button:hover {
-    background-color: var(--color-background-secondary);
-    color: var(--color-text-primary);
+    background-color: #ff8e53;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(255, 142, 83, 0.2);
+}
+
+.settings-button:hover svg {
+    color: white;
 }
 
 .settings-button:focus {
@@ -738,4 +750,19 @@
     100% {
         background-position: 0% 50%;
     }
+}
+
+/* Global button styles */
+button {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
+button:focus {
+    outline: none;
+}
+
+button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px rgba(255, 142, 83, 0.4);
 }

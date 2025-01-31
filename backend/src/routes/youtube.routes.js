@@ -1,6 +1,7 @@
-const express = require('express');
-const router = express.Router();
-const youtubeController = require('../controllers/youtube.controller');
+import { Router } from 'express';
+import * as youtubeController from '../controllers/youtube.controller.js';
+
+const router = Router();
 
 // OAuth callback
 router.post('/callback', youtubeController.handleOAuthCallback);
@@ -14,4 +15,4 @@ router.put('/channels/:channelId/stats', youtubeController.updateChannelStats);
 // Disconnect channel
 router.delete('/channels/:channelId', youtubeController.disconnectChannel);
 
-module.exports = router; 
+export default router; 

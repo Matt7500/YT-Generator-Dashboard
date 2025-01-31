@@ -1,6 +1,8 @@
-const router = require('express').Router();
-const authService = require('../services/auth.service');
-const { requireAuth } = require('../middleware/auth.middleware');
+import { Router } from 'express';
+import * as authService from '../services/auth.service.js';
+import { requireAuth } from '../middleware/auth.middleware.js';
+
+const router = Router();
 
 // Sign up
 router.post('/signup', async (req, res) => {
@@ -88,4 +90,4 @@ router.post('/verify-email', async (req, res) => {
   }
 });
 
-module.exports = router; 
+export default router; 

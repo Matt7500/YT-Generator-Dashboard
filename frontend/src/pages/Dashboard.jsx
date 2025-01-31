@@ -273,7 +273,7 @@ const Dashboard = () => {
                             {channels.length > 0 ? (
                                 <>
                                     {channels.map(renderChannelCard)}
-                                    {renderConnectCard()}
+                                    {channels.length < 6 && renderConnectCard()}
                                 </>
                             ) : (
                                 renderConnectCard()

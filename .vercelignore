@@ -1,0 +1,6 @@
+README.md
+.git
+node_modules
+.env.development
+.env.local
+*.log 

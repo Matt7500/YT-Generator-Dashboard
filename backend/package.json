@@ -1,11 +1,14 @@
 {
   "name": "yt-generator-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Backend for YouTube Generator Dashboard",
   "main": "src/app.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node src/app.js",
-    "dev": "cross-env NODE_ENV=development nodemon src/app.js",
+    "dev": "cross-env NODE_ENV=development nodemon server.js",
+    "start": "cross-env NODE_ENV=production node server.js",
+    "build": "npm install",
+    "lint": "eslint .",
     "test": "jest"
   },
   "keywords": [],
