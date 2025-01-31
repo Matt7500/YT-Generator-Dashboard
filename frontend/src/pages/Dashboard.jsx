@@ -3,6 +3,9 @@ import { userAuth } from '../contexts/AuthContext';
 import supabase from '../clients/supabaseClient';
 import { FaCog, FaVideo, FaYoutube, FaTiktok, FaPlus, FaTimes } from 'react-icons/fa';
 import '../css/Dashboard.css';
+import NewStoryModal from '../components/NewStoryModal';
+import { createStory } from '../services/story.service';
+import { toast } from 'react-hot-toast';
 
 const Dashboard = () => {
     const [channels, setChannels] = useState([]);
@@ -12,6 +15,8 @@ const Dashboard = () => {
     const [isClosing, setIsClosing] = useState(false);
     const [loadedImages, setLoadedImages] = useState({});
     const { session } = userAuth();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedChannelId, setSelectedChannelId] = useState(null);
 
     useEffect(() => {
         loadChannels();
@@ -78,8 +83,8 @@ const Dashboard = () => {
     };
 
     const handleCreateVideo = (channelId) => {
-        // TODO: Implement create video navigation
-        console.log('Create video clicked for channel:', channelId);
+        setSelectedChannelId(channelId);
+        setIsModalOpen(true);
     };
 
     const handleConnectChannel = () => {
@@ -98,6 +103,22 @@ const Dashboard = () => {
         console.log(`Selected platform: ${platform}`);
         // TODO: Implement platform-specific connection flow
         handleCloseModal();
+    };
+
+    const handleCreateStory = async (storyData) => {
+        try {
+            await createStory(storyData, selectedChannelId);
+            toast.success('Story created successfully!');
+            setSelectedChannelId(null);
+        } catch (error) {
+            console.error('Error creating story:', error);
+            toast.error('Failed to create story. Please try again.');
+        }
+    };
+
+    const handleCloseStoryModal = () => {
+        setIsModalOpen(false);
+        setSelectedChannelId(null);
     };
 
     const renderChannelCard = (channel) => (
@@ -283,6 +304,13 @@ const Dashboard = () => {
                 </div>
             </div>
             {showModal && renderPlatformModal()}
+
+            <NewStoryModal
+                isOpen={isModalOpen}
+                onClose={handleCloseStoryModal}
+                onSubmit={handleCreateStory}
+                channelId={selectedChannelId}
+            />
         </div>
     );
 };

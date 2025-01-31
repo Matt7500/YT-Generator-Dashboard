@@ -4,7 +4,49 @@ import supabase from '../clients/supabaseClient';
 const AuthContext = createContext();
 
 export const AuthContextProvider = ({ children }) => {
-    const [session, setSession] = useState(undefined);
+    const [session, setSession] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [initialRoute, setInitialRoute] = useState(null);
+
+    useEffect(() => {
+        // Get the current route before auth check
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/login' && currentPath !== '/signup' && 
+            currentPath !== '/forgot-password' && currentPath !== '/reset-password') {
+            sessionStorage.setItem('lastAuthenticatedRoute', currentPath);
+        }
+
+        // Check initial session
+        const initializeAuth = async () => {
+            try {
+                const { data: { session: initialSession } } = await supabase.auth.getSession();
+                setSession(initialSession);
+                
+                if (initialSession) {
+                    const lastRoute = sessionStorage.getItem('lastAuthenticatedRoute');
+                    setInitialRoute(lastRoute || '/dashboard');
+                }
+            } catch (error) {
+                console.error('Error checking auth session:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        initializeAuth();
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+            if (!session) {
+                sessionStorage.removeItem('lastAuthenticatedRoute');
+            }
+        });
+
+        return () => {
+            subscription?.unsubscribe();
+        };
+    }, []);
 
     // Sign in with Google
     const signInWithGoogle = async () => {
@@ -72,16 +114,6 @@ export const AuthContextProvider = ({ children }) => {
         return data;
     };
 
-    useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-        });
-
-        supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-        });
-    }, []);
-
     //Sign Out
     const signOut = async () => {
         const { error } = await supabase.auth.signOut();
@@ -89,7 +121,6 @@ export const AuthContextProvider = ({ children }) => {
             throw error;
         }
     };
-
 
     //Sign In
     const signIn = async ({ email, password }) => {
@@ -105,10 +136,11 @@ export const AuthContextProvider = ({ children }) => {
         return data;
     };
 
-
     return (
         <AuthContext.Provider value={{ 
             session, 
+            isLoading,
+            initialRoute,
             signUp, 
             signOut, 
             signIn,

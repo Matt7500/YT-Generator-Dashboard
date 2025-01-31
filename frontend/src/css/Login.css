@@ -49,25 +49,37 @@
   font-size: 0.875rem;
 }
 
-.form-group input {
+.login-container .form-group input {
   width: 100%;
   padding: 0.625rem 0.875rem;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 0.9375rem;
-  color: #1f2937;
+  color: #4b5563 !important;
+  -webkit-text-fill-color: #4b5563 !important;
+  background-color: #ffffff !important;
   transition: all 0.15s ease;
-  background: #ffffff;
+}
+
+.login-container .form-group input:-webkit-autofill,
+.login-container .form-group input:-webkit-autofill:hover,
+.login-container .form-group input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #4b5563 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.login-container .form-group input:focus {
+  outline: none;
+  border-color: #ff6ba6;
+  box-shadow: 0 0 0 3px rgba(255, 107, 166, 0.1);
+  color: #4b5563 !important;
+  -webkit-text-fill-color: #4b5563 !important;
+  background-color: #ffffff !important;
 }
 
 .form-group input:hover {
   border-color: #9ca3af;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .password-input-container {

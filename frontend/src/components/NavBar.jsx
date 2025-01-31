@@ -5,7 +5,7 @@ import { userAuth } from '../contexts/AuthContext';
 import supabase from '../clients/supabaseClient';
 import '../css/NavBar.css';
 
-const NavBar = () => {
+const NavBar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
     const { signOut, session } = userAuth();
@@ -92,7 +92,28 @@ const NavBar = () => {
 
     return (
         <nav className="navbar">
-            <div className="brand">
+            <div className="navbar-left">
+                <button 
+                    className="mobile-menu-button"
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    aria-label="Toggle menu"
+                >
+                    <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            d="M3 12H21M3 6H21M3 18H21"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
+                    </svg>
+                </button>
                 <Link to="/" className="logo">YT Manager</Link>
             </div>
             

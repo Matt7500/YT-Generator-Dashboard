@@ -63,7 +63,6 @@
   display: flex;
   align-items: center;
   padding-left: 2rem;
-  border-right: 1px solid var(--color-border);
   height: 100%;
 }
 
@@ -351,4 +350,81 @@
 .theme-toggle:hover {
   background-color: var(--color-dropdown-hover);
   color: var(--color-text-primary);
+}
+
+.mobile-menu-button {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.mobile-menu-button:hover {
+  color: var(--color-text-primary);
+}
+
+/* Mobile styles */
+@media screen and (max-width: 959px) {
+  .navbar {
+    grid-template-columns: auto 1fr auto;
+    padding: 0 1rem;
+    height: 64px;
+  }
+
+  .mobile-menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+  }
+
+  .brand {
+    height: 64px;
+    width: auto;
+  }
+
+  .welcome-message {
+    font-size: 1.2rem;
+    padding: 0 1rem;
+    height: 64px;
+  }
+
+  .profile-section {
+    height: 64px;
+    padding-left: 1rem;
+    padding-right: 0;
+  }
+
+  .navbar-left {
+    padding-left: 0;
+    border-right: none;
+    display: flex;
+    align-items: center;
+  }
+
+  .navbar-center {
+    padding-left: 1rem;
+  }
+
+  .navbar-right {
+    padding-right: 0;
+  }
+
+  .admin-controls {
+    display: none;
+  }
+
+  .profile-button {
+    padding: 0.375rem 0.5rem;
+  }
+
+  .profile-label {
+    display: none;
+  }
+
+  .dropdown-menu {
+    right: -0.5rem;
+  }
 } 

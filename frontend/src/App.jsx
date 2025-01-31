@@ -8,24 +8,61 @@ import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import AuthNavBar from './components/AuthNavBar';
 import { ProtectedRoute, AuthRoute, CallbackRoute } from './components/ProtectedRoute';
-import { AuthContextProvider } from './contexts/AuthContext';
-import { useState } from 'react';
+import { AuthContextProvider, userAuth } from './contexts/AuthContext';
+import { useState, useEffect } from 'react';
 import YouTubeCallback from './pages/YouTubeCallback';
 import AuthCallback from './pages/AuthCallback';
+import StoryWriter from './pages/StoryWriter';
+
+// Loading screen component
+const LoadingScreen = () => {
+  const { theme } = useTheme();
+  return (
+    <div className={`loading-screen ${theme}`}>
+      <div className="loading-spinner"></div>
+    </div>
+  );
+};
 
 // Layout wrapper component
 const AppLayout = () => {
   const location = useLocation();
   const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(location.pathname);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Save the current path when it changes
+  useEffect(() => {
+    if (!isAuthPage && location.pathname !== '/') {
+      localStorage.setItem('lastPath', location.pathname);
+    }
+  }, [location.pathname, isAuthPage]);
+
+  // Get the last visited path or default to dashboard
+  const getDefaultRoute = () => {
+    const lastPath = localStorage.getItem('lastPath');
+    return lastPath || '/dashboard';
+  };
 
   return (
     <div className="app">
-      {isAuthPage ? <AuthNavBar /> : <NavBar />}
+      {isAuthPage ? (
+        <AuthNavBar />
+      ) : (
+        <NavBar 
+          isSidebarOpen={isSidebarOpen} 
+          setIsSidebarOpen={setIsSidebarOpen} 
+        />
+      )}
       <div className="app-container">
-        {!isAuthPage && <Sidebar />}
+        {!isAuthPage && (
+          <Sidebar 
+            isOpen={isSidebarOpen} 
+            onClose={() => setIsSidebarOpen(false)} 
+          />
+        )}
         <main className={`main-content ${isAuthPage ? 'auth-page' : ''}`}>
           <Routes>
             {/* Protected Routes */}
@@ -42,6 +79,14 @@ const AppLayout = () => {
               element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/story-writer" 
+              element={
+                <ProtectedRoute>
+                  <StoryWriter />
                 </ProtectedRoute>
               } 
             />
@@ -103,12 +148,11 @@ const AppLayout = () => {
               path="/" 
               element={
                 <ProtectedRoute>
-                  <NavBar />
-                  <Dashboard />
+                  <Navigate to={getDefaultRoute()} replace />
                 </ProtectedRoute>
               } 
             />
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
           </Routes>
         </main>
       </div>
@@ -116,12 +160,23 @@ const AppLayout = () => {
   );
 };
 
+// Root component that handles initial auth loading
+const AppRoot = () => {
+  const { isLoading } = userAuth();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  return <AppLayout />;
+};
+
 function App() {
   return (
     <Router>
       <AuthContextProvider>
         <ThemeProvider>
-          <AppLayout />
+          <AppRoot />
         </ThemeProvider>
       </AuthContextProvider>
     </Router>

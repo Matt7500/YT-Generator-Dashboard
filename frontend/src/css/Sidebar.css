@@ -3,10 +3,32 @@
     --nav-gradient: linear-gradient(135deg, #ff6ba6 0%, #FF8E53 50%, #FF8E53 50%, #ff6ba6 100%);
 }
 
+/* Overlay styles */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0px);
+    z-index: 998;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    opacity: 0;
+}
+
+.sidebar-overlay.open {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    pointer-events: auto;
+    opacity: 1;
+}
+
 .sidebar {
     width: 280px;
     height: 100vh;
-    background-color: var(--color-sidebar-bg);
+    background-color: var(--color-background-secondary);
     display: flex;
     flex-direction: column;
     align-items: left;
@@ -14,7 +36,8 @@
     left: 0;
     padding: 100px 2rem 2rem;
     overflow-y: auto;
-    border-right: 1px solid var(--color-border);
+    transition: transform 0.3s ease-in-out;
+    z-index: 999;
 }
 
 .sidebar-header h1 {
@@ -28,6 +51,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+    flex: 1;
 }
 
 .nav-item {
@@ -113,4 +137,49 @@
 
 .edit-channels-link.active:hover {
     background-color: var(--color-primary-hover);
+}
+
+/* Mobile styles */
+@media screen and (max-width: 959px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: 100%;
+        max-width: 300px;
+        padding: 80px 2rem 1rem;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background-color: var(--color-background-dark);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-nav {
+        gap: 8px;
+        flex: 1;
+        margin-bottom: auto;
+    }
+
+    .nav-item {
+        padding: 14px 16px;
+        font-size: 1.1rem;
+    }
+
+    .sidebar-footer {
+        padding: 1.5rem 0;
+        margin-top: auto;
+        position: sticky;
+        bottom: 0;
+        background-color: var(--color-background-dark);
+        border-top: 1px solid var(--color-border);
+    }
+
+    .create-all-btn, 
+    .edit-channels-link {
+        padding: 16px 20px;
+        font-size: 1.1rem;
+    }
 } 

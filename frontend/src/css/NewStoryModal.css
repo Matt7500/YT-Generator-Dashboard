@@ -1,0 +1,183 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.3s ease-out;
+}
+
+.modal-overlay.closing {
+    opacity: 0;
+}
+
+.modal-content {
+    background: var(--color-background);
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    animation: modalFadeIn 0.3s ease-out;
+    transform: translateY(0);
+    opacity: 1;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.modal-content.closing {
+    transform: translateY(20px);
+    opacity: 0;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.close-button:hover {
+    color: var(--color-text-primary);
+}
+
+.close-button:focus {
+    outline: none;
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    color: var(--color-text-primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-input,
+.form-textarea {
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #ff8e53;
+    box-shadow: 0 0 0 2px rgba(255, 142, 83, 0.2);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.cancel-button,
+.submit-button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cancel-button {
+    background: var(--color-background-secondary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.cancel-button:hover {
+    background: var(--color-background-hover);
+    border: 1px solid var(--color-border);
+}
+
+.submit-button {
+    background-size: 200% 200%;
+    background-image: linear-gradient(135deg, #ff6ba6 0%, #FF8E53 50%, #FF8E53 50%, #ff6ba6 100%);
+    background-position: 0% 0%;
+    color: white;
+    transition: all 0.3s ease, background-position 0.5s ease;
+    outline: none;
+    border: none;
+}
+
+.submit-button:hover {
+    background-position: 100% 100%;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+    outline: none;
+    border: none;
+}
+
+.submit-button:focus,
+.submit-button:focus-visible {
+    outline: none;
+    border: none;
+}
+
+.submit-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(255, 142, 83, 0.2);
+    border: none;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+} 
