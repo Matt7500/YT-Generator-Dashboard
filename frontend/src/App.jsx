@@ -16,6 +16,7 @@ import { useState, useEffect } from 'react';
 import YouTubeCallback from './pages/YouTubeCallback';
 import AuthCallback from './pages/AuthCallback';
 import StoryWriter from './pages/StoryWriter';
+import Stories from './pages/Stories';
 
 // Loading screen component
 const LoadingScreen = () => {
@@ -83,14 +84,21 @@ const AppLayout = () => {
               } 
             />
             <Route 
-              path="/story-writer" 
+              path="/story-writer/:storyId" 
               element={
                 <ProtectedRoute>
                   <StoryWriter />
                 </ProtectedRoute>
               } 
             />
-
+            <Route 
+              path="/stories" 
+              element={
+                <ProtectedRoute>
+                  <Stories />
+                </ProtectedRoute>
+              } 
+            />
             {/* Auth Routes */}
             <Route 
               path="/login" 

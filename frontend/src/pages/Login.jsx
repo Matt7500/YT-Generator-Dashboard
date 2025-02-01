@@ -18,6 +18,9 @@ const Login = () => {
 
     const updateAllChannelStats = async (userId) => {
         try {
+            console.log('\n=== Updating All Channel Stats ===');
+            console.log('User ID:', userId);
+
             // Get all channels for the user
             const { data: channels, error: channelsError } = await supabase
                 .from('youtube_accounts')
@@ -26,19 +29,27 @@ const Login = () => {
 
             if (channelsError) throw channelsError;
 
+            console.log('Found channels:', channels);
+
             // Update stats for each channel
             const updatePromises = channels.map(channel => 
-                fetch(`/api/youtube/channels/${channel.channel_id}/stats`, {
+                fetch(`${import.meta.env.VITE_API_URL}/youtube/channels/${channel.channel_id}/stats`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ userId })
+                }).then(res => {
+                    if (!res.ok) throw new Error(`Failed to update stats for channel ${channel.channel_id}`);
+                    return res.json();
                 })
             );
 
-            await Promise.all(updatePromises);
+            const results = await Promise.all(updatePromises);
+            console.log('All channel stats updated:', results);
+            console.log('=== Channel Stats Update Complete ===\n');
         } catch (error) {
+            console.error('\n=== Channel Stats Update Failed ===');
             console.error('Error updating channel statistics:', error);
         }
     };

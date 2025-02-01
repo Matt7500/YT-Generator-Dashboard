@@ -4,8 +4,6 @@ import supabase from '../clients/supabaseClient';
 import { FaCog, FaVideo, FaYoutube, FaTiktok, FaPlus, FaTimes } from 'react-icons/fa';
 import '../css/Dashboard.css';
 import NewStoryModal from '../components/NewStoryModal';
-import { createStory } from '../services/story.service';
-import { toast } from 'react-hot-toast';
 
 const Dashboard = () => {
     const [channels, setChannels] = useState([]);
@@ -68,7 +66,31 @@ const Dashboard = () => {
                 .eq('user_id', session?.user?.id);
 
             if (error) throw error;
-            setChannels(channels || []);
+
+            // Update stats for each channel
+            const updatedChannels = await Promise.all(channels.map(async (channel) => {
+                try {
+                    const response = await fetch(`${import.meta.env.VITE_API_URL}/youtube/channels/${channel.channel_id}/stats`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ userId: session?.user?.id })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to update stats for channel ${channel.channel_id}`);
+                    }
+                    
+                    const updatedChannel = await response.json();
+                    return updatedChannel;
+                } catch (err) {
+                    console.error('Error updating channel stats:', err);
+                    return channel; // Return original channel data if update fails
+                }
+            }));
+
+            setChannels(updatedChannels || []);
         } catch (error) {
             console.error('Error loading channels:', error);
             setError('Failed to load channels');
@@ -103,17 +125,6 @@ const Dashboard = () => {
         console.log(`Selected platform: ${platform}`);
         // TODO: Implement platform-specific connection flow
         handleCloseModal();
-    };
-
-    const handleCreateStory = async (storyData) => {
-        try {
-            await createStory(storyData, selectedChannelId);
-            toast.success('Story created successfully!');
-            setSelectedChannelId(null);
-        } catch (error) {
-            console.error('Error creating story:', error);
-            toast.error('Failed to create story. Please try again.');
-        }
     };
 
     const handleCloseStoryModal = () => {
@@ -308,7 +319,6 @@ const Dashboard = () => {
             <NewStoryModal
                 isOpen={isModalOpen}
                 onClose={handleCloseStoryModal}
-                onSubmit={handleCreateStory}
                 channelId={selectedChannelId}
             />
         </div>

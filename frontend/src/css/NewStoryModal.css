@@ -10,31 +10,27 @@
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    opacity: 1;
-    transition: opacity 0.3s ease-out;
+    animation: overlayFadeIn 0.3s ease-out;
 }
 
 .modal-overlay.closing {
-    opacity: 0;
+    animation: overlayFadeOut 0.3s ease-out forwards;
 }
 
 .modal-content {
-    background: var(--color-background);
     border-radius: 12px;
-    padding: 24px;
     width: 90%;
     max-width: 500px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     position: relative;
     animation: modalFadeIn 0.3s ease-out;
-    transform: translateY(0);
-    opacity: 1;
-    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    background-color: var(--color-card-bg) !important;
+    padding: 32px;
+    border: 1px solid var(--color-border);
 }
 
+
 .modal-content.closing {
-    transform: translateY(20px);
-    opacity: 0;
+    animation: modalFadeOut 0.3s ease-out forwards;
 }
 
 .modal-header {
@@ -73,13 +69,16 @@
 .modal-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    align-items: center;
+    gap: 24px;
+    width: 100%;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: 100%;
 }
 
 .form-group label {
@@ -90,13 +89,15 @@
 
 .form-input,
 .form-textarea {
-    padding: 10px 12px;
+    width: 100%;
+    padding: 12px 16px;
     border: 1px solid var(--color-border);
     border-radius: 8px;
-    background: var(--color-background-secondary);
+    background-color: var(--input-background) !important;
     color: var(--color-text-primary);
     font-size: 0.95rem;
     transition: all 0.2s ease;
+    box-sizing: border-box;
 }
 
 .form-input:focus,
@@ -112,11 +113,10 @@
 }
 
 .modal-actions {
-    display: flex;
-    justify-content: flex-end;
     gap: 12px;
     margin-top: 24px;
 }
+
 
 .cancel-button,
 .submit-button {
@@ -131,13 +131,14 @@
 }
 
 .cancel-button {
-    background: var(--color-background-secondary);
+    background: var(--button-background-secondary);
     border: 1px solid var(--color-border);
     color: var(--color-text-primary);
 }
 
+
 .cancel-button:hover {
-    background: var(--color-background-hover);
+    background: var(--button-background-secondary-hover);
     border: 1px solid var(--color-border);
 }
 
@@ -179,5 +180,34 @@
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes modalFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+}
+
+@keyframes overlayFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes overlayFadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
     }
 } 

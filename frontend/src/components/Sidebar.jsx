@@ -40,6 +40,13 @@ const Sidebar = ({ isOpen, onClose }) => {
                         Story Writer
                     </Link>
                     <Link 
+                        to="/stories" 
+                        className={`nav-item ${location.pathname === '/stories' ? 'active' : ''}`}
+                        onClick={handleLinkClick}
+                    >
+                        Stories
+                    </Link>
+                    <Link 
                         to="/channels" 
                         className={`nav-item ${location.pathname === '/channels' ? 'active' : ''}`}
                         onClick={handleLinkClick}

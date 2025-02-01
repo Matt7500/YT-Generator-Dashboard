@@ -74,25 +74,7 @@ h1 {
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
   font-family: inherit;
-  background-color: #f9f9f9;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-
-button:hover {
-  border-color: #007bff;
-}
-
-button:focus,
-button:focus-visible {
-  outline: 2px solid #007bff;
-  outline-offset: 2px;
 }
 
 @media (prefers-color-scheme: light) {
@@ -117,6 +99,25 @@ button:focus-visible {
   --color-background: #f5f5f5;
   --color-background-secondary: #f9fafb;
   --color-background-tertiary: #f3f4f6;
+
+  /* Button Colors */
+  --button-background-primary: linear-gradient(135deg, #ff6ba6 0%, #FF8E53 50%, #FF8E53 50%, #ff6ba6 100%);
+  --button-text-primary: #ffffff;
+  --button-text-hover-primary: #ffffff;
+  --button-background-secondary: #ebebeb;
+  --button-background-secondary-hover: #d9d9d9;
+  --button-text-secondary: #292c33;
+  --button-text-hover-secondary: #292c33;
+  --button-svg-primary: #000000;
+  --button-svg-hover-primary: #000000;
+  --button-svg-secondary: #ffffff;
+  --button-svg-hover-secondary: #ffffff;
+
+  /* Input Colors */
+  --input-background: #f5f5f5;
+  --input-border: #e5e7eb;
+  --input-text: #111827;
+  --input-placeholder: #6b7280;
   
   /* Text Colors */
   --color-text-primary: #111827;
@@ -149,9 +150,28 @@ button:focus-visible {
 
 :root[data-theme="dark"] {
   /* Background Colors */
-  --color-background: #1a1b25;
-  --color-background-secondary: #22242f;
-  --color-background-tertiary: #2a2c3a;
+  --color-background: #0f0f14;
+  --color-background-secondary: #1a1b24;
+  --color-background-tertiary: #232532;
+
+  /* Button Colors */
+  --button-background-primary: linear-gradient(135deg, #ff6ba6 0%, #FF8E53 50%, #FF8E53 50%, #ff6ba6 100%);
+  --button-text-primary: #000000;
+  --button-text-hover-primary: #000000;
+  --button-background-secondary: #373a4d;
+  --button-background-secondary-hover: #2f3142;
+  --button-text-secondary: #ffffff;
+  --button-text-hover-secondary: #ffffff;
+  --button-svg-primary: #000000;
+  --button-svg-hover-primary: #000000;
+  --button-svg-secondary: #ffffff;
+  --button-svg-hover-secondary: #ffffff;
+
+  /* Input Colors */
+  --input-background: #14151d;
+  --input-border: #373a4d;
+  --input-text: #ffffff;
+  --input-placeholder: #b4b4c0;
   
   /* Text Colors */
   --color-text-primary: #ffffff;
@@ -171,9 +191,9 @@ button:focus-visible {
   --color-success-hover: #00bf92;
   
   /* Component Colors */
-  --color-navbar-bg: #22242f;
+  --color-navbar-bg: #292b39;
   --color-sidebar-bg: #1a1b25;
-  --color-card-bg: #22242f;
+  --color-card-bg: #191b23;
   --color-dropdown-bg: #22242f;
   --color-dropdown-hover: #2a2c3a;
   

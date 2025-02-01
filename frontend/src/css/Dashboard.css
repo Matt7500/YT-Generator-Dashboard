@@ -1,19 +1,11 @@
 .dashboard {
-    width: 100%;
+    width: 100vw;
     min-height: 100vh;
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    background-color: var(--color-background);
-}
-
-.sidebar-spacer {
-    width: 100%;
-    background-color: #2061a3;
 }
 
 .dashboard-content {
-    grid-column: 2;
-    width: 100%;
+    margin-left: 280px;
+    width: calc(100% - 280px);
     background-color: var(--color-background);
 }
 
@@ -48,11 +40,10 @@
 
 .channel-grid {
     display: grid;
-    gap: 2rem;
     width: 100%;
-    padding: 0 2rem;
+    padding: 0 4rem;
     margin: 0 auto;
-    max-width: 1600px;
+    max-width: 1400px;
     height: 100%;
     box-sizing: border-box;
     
@@ -83,6 +74,7 @@
     .dashboard-content {
         grid-column: unset;
         width: 100%;
+        margin-left: 0;
     }
 
     .dashboard-header {
@@ -92,18 +84,20 @@
     }
 
     .channel-grid {
-        padding: 0 1rem;
+        padding: 0 0.5rem;
+        gap: 2rem;
     }
 
     .channel-card {
         padding: 1.5rem;
         gap: 1.5rem;
+        position: relative;
     }
 
     .channel-card-header {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
         border-bottom: none;
     }
 
@@ -111,7 +105,7 @@
         flex-direction: row;
         align-items: center;
         gap: 1rem;
-        flex: 1;
+        width: 100%;
     }
 
     .channel-thumbnail-wrapper {
@@ -126,9 +120,9 @@
     }
 
     .platform-badge {
-        margin-top: 0;
-        margin-left: auto;
-        flex-shrink: 0;
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
     }
 
     .channel-stats {
@@ -318,32 +312,6 @@
 }
 
 .platform-badge.youtube {
-    background-color: rgba(220, 38, 38, 0.1);
-    color: #ff4d4d;
-    border: 1px solid rgba(220, 38, 38, 0.2);
-}
-
-.platform-badge.tiktok {
-    background-color: rgba(37, 244, 238, 0.1);
-    color: #00f2ea;
-    border: 1px solid rgba(37, 244, 238, 0.2);
-}
-
-@media (prefers-color-scheme: dark) {
-    .platform-badge.youtube {
-        background-color: rgba(220, 38, 38, 0.15);
-        color: #ff6b6b;
-        border: 1px solid rgba(220, 38, 38, 0.3);
-    }
-
-    .platform-badge.tiktok {
-        background-color: rgba(37, 244, 238, 0.15);
-        color: #25f4ee;
-        border: 1px solid rgba(37, 244, 238, 0.3);
-    }
-}
-
-.platform-badge.youtube {
     background-color: #fee2e2;
     color: #dc2626;
 }
@@ -351,6 +319,20 @@
 .platform-badge.tiktok {
     background-color: #e5e7eb;
     color: #1f2937;
+}
+
+@media (prefers-color-scheme: dark) {
+    .platform-badge.youtube {
+        background-color: rgba(220, 38, 38, 0.08);
+        color: #ff4d4d;
+        border: 1px solid rgba(220, 38, 38, 0.2);
+    }
+
+    .platform-badge.tiktok {
+        background-color: rgba(37, 244, 238, 0.08);
+        color: #25f4ee;
+        border: 1px solid rgba(37, 244, 238, 0.2);
+    }
 }
 
 .channel-stats {
@@ -404,6 +386,13 @@
     transition: all 0.2s ease;
     border: none;
     white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+.action-button > * {
+    position: relative;
+    z-index: 2;
 }
 
 .action-button svg {
@@ -413,20 +402,20 @@
 }
 
 .settings-button {
-    background-color: var(--color-background-tertiary);
-    color: var(--color-text-secondary);
-    transition: all 0.2s ease;
+    background-color: var(--button-background-secondary) !important;
+    color: var(--button-text-secondary) !important;
+    border: 1px solid var(--color-border);
 }
 
 .settings-button:hover {
-    background-color: #ff8e53;
-    color: white;
+    background-color: var(--button-background-secondary-hover) !important;
+    color: var(--button-text-hover-secondary) !important;
     transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(255, 142, 83, 0.2);
+    border-color: var(--color-text-tertiary);
 }
 
 .settings-button:hover svg {
-    color: white;
+    color: var(--button-text-hover);
 }
 
 .settings-button:focus {
@@ -437,14 +426,15 @@
     background-size: 200% 200%;
     background-image: linear-gradient(135deg, #ff6ba6 0%, #FF8E53 50%, #FF8E53 50%, #ff6ba6 100%);
     background-position: 0% 0%;
-    color: white;
+    color: white !important;
+    border: none;
     transition: all 0.3s ease, background-position 0.5s ease;
 }
 
 .create-video-button:hover {
     background-position: 100% 100%;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+    box-shadow: 0 4px 8px rgba(255, 107, 166, 0.3);
 }
 
 .loading-state,

@@ -12,7 +12,7 @@ export async function createNewStory(userId, storyDetails) {
                 genre: storyDetails.genre,
                 premise: storyDetails.premise,
                 scenes: [],  // Initialize empty scenes array
-                status: 'in_progress',
+                status: 'draft',
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             }])

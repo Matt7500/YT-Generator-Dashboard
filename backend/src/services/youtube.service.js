@@ -253,8 +253,92 @@ export async function saveChannelToDatabase(channelData, userId, tokens) {
 }
 
 export async function updateChannelStatistics(channelId, userId) {
-  // Implementation for updating channel statistics
-  // Add your code here
+  console.log('\n=== Updating Channel Statistics ===');
+  console.log('Channel ID:', channelId);
+  console.log('User ID:', userId);
+
+  try {
+    // Get the channel's current access token
+    const { data: channel, error: channelError } = await supabase
+      .from('youtube_accounts')
+      .select('*')
+      .eq('channel_id', channelId)
+      .eq('user_id', userId)
+      .single();
+
+    if (channelError) {
+      console.error('Error fetching channel:', channelError);
+      throw channelError;
+    }
+
+    // Check if token needs refresh
+    const tokenExpiry = new Date(channel.token_expiry);
+    let accessToken = channel.access_token;
+
+    if (tokenExpiry <= new Date()) {
+      console.log('Token expired, refreshing...');
+      const newTokens = await refreshAccessToken(channel.refresh_token);
+      accessToken = newTokens.access_token;
+
+      // Update tokens in database
+      const { error: updateError } = await supabase
+        .from('youtube_accounts')
+        .update({
+          access_token: newTokens.access_token,
+          refresh_token: newTokens.refresh_token,
+          token_expiry: new Date(Date.now() + (newTokens.expires_in * 1000)).toISOString()
+        })
+        .eq('channel_id', channelId)
+        .eq('user_id', userId);
+
+      if (updateError) {
+        console.error('Error updating tokens:', updateError);
+        throw updateError;
+      }
+    }
+
+    // Fetch fresh channel data
+    const channelData = await getUserChannel(accessToken);
+
+    // Update channel statistics
+    const { data: updatedChannel, error: updateError } = await supabase
+      .from('youtube_accounts')
+      .update({
+        subscriber_count: parseInt(channelData.statistics?.subscriberCount) || 0,
+        video_count: parseInt(channelData.statistics?.videoCount) || 0,
+        view_count: parseInt(channelData.statistics?.viewCount) || 0,
+        updated_at: new Date().toISOString()
+      })
+      .eq('channel_id', channelId)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Error updating channel statistics:', updateError);
+      throw updateError;
+    }
+
+    console.log('Channel statistics updated:', {
+      id: updatedChannel.id,
+      channelId: updatedChannel.channel_id,
+      subscriberCount: updatedChannel.subscriber_count,
+      videoCount: updatedChannel.video_count,
+      viewCount: updatedChannel.view_count
+    });
+    console.log('=== Channel Statistics Update Complete ===\n');
+
+    return updatedChannel;
+  } catch (error) {
+    console.error('\n=== Channel Statistics Update Failed ===');
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
+    throw error;
+  }
 }
 
 export async function disconnectChannel(channelId, userId) {

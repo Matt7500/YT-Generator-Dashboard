@@ -14,7 +14,7 @@ export async function createStory(storyData, channelId) {
                 genre: storyData.genre,
                 premise: storyData.premise,
                 scenes: [],
-                status: 'in_progress'
+                status: 'draft'
             }])
             .select()
             .single();
