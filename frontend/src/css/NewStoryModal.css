@@ -153,6 +153,14 @@
     background: var(--background-secondary);
     color: var(--text-color);
     border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+    background: var(--color-background-tertiary);
+    transform: translateY(-1px);
+    border-color: var(--color-text-tertiary);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .continue-button {
