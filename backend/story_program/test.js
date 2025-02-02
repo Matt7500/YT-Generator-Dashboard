@@ -1,5 +1,5 @@
-const { main: storyWriter, main2 } = require('./story_writer');
-const { processLocal } = require('./local_operations');
+import { main as storyWriter, main2 } from './story_writer.js';
+import { processLocal } from './local_operations.js';
 
 // Add some visual separation before starting
 console.log('\n'.repeat(2));

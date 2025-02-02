@@ -1,7 +1,7 @@
-const fs = require('fs').promises;
-const settings = require('./settings');
-const { FixedSizeQueue } = require('./utils');
-const OpenAI = require('openai');
+import fs from 'fs/promises';
+import OpenAI from 'openai';
+import settings from './settings.js';
+import { FixedSizeQueue } from './utils.js';
 
 // Add global variables to hold the clients
 let oaiClient = null;
@@ -106,7 +106,7 @@ async function checkSceneConsistency(newSceneDescription, previousScenes) {
     `;
 
     const response = await orClient.chat.completions.create({
-        model: settings.OR_MODEL,
+        model: settings.OPENROUTER_MODEL_REASONING,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7,
     });
@@ -134,7 +134,7 @@ async function rewriteScene(originalScene, sceneBeat, inconsistencies) {
     `;
 
     const response = await orClient.chat.completions.create({
-        model: settings.OR_MODEL,
+        model: settings.OPENROUTER_MODEL_REASONING,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.8,
     });
@@ -283,7 +283,7 @@ async function verifySceneFixes(rewrittenScene, originalIssues) {
     `;
 
     const response = await orClient.chat.completions.create({
-        model: settings.OR_MODEL,
+        model: settings.OPENROUTER_MODEL_REASONING,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3,
     });
@@ -1112,7 +1112,8 @@ async function main3(username, channelName) {
     return [finalStory, processedScenes, storyIdea];
 }
 
-module.exports = {
+// Export all functions
+export {
     initializeClients,
     rewriteScene,
     writeScene,
@@ -1122,8 +1123,11 @@ module.exports = {
     createOutline,
     characters,
     callTune5,
-    main,
     writeStory,
+    main,
     main2,
     main3
 };
+
+// Export main as default for backward compatibility
+export default main;

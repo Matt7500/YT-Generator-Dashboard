@@ -1,17 +1,24 @@
-const OpenAI = require('openai');
-const settings = require('./settings');
-const elevenlabs = require('elevenlabs-node');
-const Replicate = require('replicate');
-const axios = require('axios');
-const sharp = require('sharp');
-const fs = require('fs').promises;
-const fsSync = require('fs');
-const path = require('path');
-const ffmpeg = require('fluent-ffmpeg');
-const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
-const naturalSort = require('natural-compare-lite');
-const { createCanvas, loadImage, registerFont } = require('canvas');
-const wordwrap = require('word-wrap');
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import OpenAI from 'openai';
+import settings from './settings.js';
+import elevenlabs from 'elevenlabs-node';
+import Replicate from 'replicate';
+import axios from 'axios';
+import sharp from 'sharp';
+import fsSync from 'fs';
+import ffmpeg from 'fluent-ffmpeg';
+import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+import naturalSort from 'natural-compare-lite';
+import { createCanvas, loadImage, registerFont } from 'canvas';
+import wordwrap from 'word-wrap';
+import readline from 'readline';
+
+// Setup __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Add global variables to hold the clients
 let oaiClient = null;
@@ -570,8 +577,6 @@ async function drawTextOnImage(imagePath, text, outputPath, profile) {
     console.log(`Image saved at ${outputPath} with final quality: ${quality}`);
 }
 
-const readline = require('readline');
-
 function createReadlineInterface() {
     return readline.createInterface({
         input: process.stdin,
@@ -773,114 +778,18 @@ async function createThumbnail(title, channelName, backgroundImage, username) {
  * @param {string} [options.storyIdea] - The story idea
  * @param {boolean} [options.useExistingAudio=false] - Whether to use existing audio
  */
-async function processLocal(username, channelName, {
-    storyText = null,
-    scenes = null,
-    storyIdea = null,
-    useExistingAudio = false
-} = {}) {
-    console.log("Starting local processing...");
-    
-    // Initialize settings and clients
-    await settings.initializeSettings(username);
-    await settings.initializeChannelSettings(username, channelName);
-    await initializeClients(username);
+async function processLocal(username, channelName, storyData) {
+    const { storyText, scenes, storyIdea, useExistingAudio } = storyData;
 
-    // Create title using channel's fine-tuned model
-    let title = await createTitles(storyIdea, settings.STORY_TITLE_FT_MODEL);
-    title = title.replace(/"/g, '');
-    console.log(`Video Title: ${title}`);
-
-    // Generate thumbnail image
-    const thumbnailSummary = await summarizeText(storyText, settings.STORY_PROFILE, { isThumbnail: true });
-    const thumbnailImageUrl = await generateImg(thumbnailSummary, { isThumbnail: true });
-    const thumbnailBgPath = await saveImage(thumbnailImageUrl, channelName, { imageType: 'thumbnail' });
-
-    // Create thumbnail using channel settings
-    const thumbnailPath = await createThumbnail(title, channelName, thumbnailBgPath, username);
-
-    // Use video_background.png for all scenes
-    const sceneImages = Array(scenes.length).fill(path.join('Output', channelName, 'video_background.png'));
-
-    // Process each scene
-    const sceneAudioFiles = [];
-    const sceneDurations = [];
-    const finalAudioPath = path.join('Output', channelName, 'Final.mp3');
-
-    if (!useExistingAudio) {
-        console.log("\nProcessing scenes...");
-        
-        // Process scenes with progress bar
-        for (const [index, scene] of scenes.entries()) {
-            process.stdout.write(`Processing Scene ${index + 1}/${scenes.length}\r`);
-            
-            const [audioFile, duration] = await generateTts(
-                scene,
-                settings.VOICE_ID,
-                channelName,
-                index + 1
-            );
-            
-            sceneAudioFiles.push(audioFile);
-            sceneDurations.push(duration);
-        }
-        console.log(); // New line after progress
-
-        // Combine audio files
-        let finalAudio = await AudioSegment.empty();
-        const silence = await AudioSegment.silent(600);
-        
-        for (const audioFile of sceneAudioFiles) {
-            const audioSegment = await AudioSegment.fromFile(audioFile);
-            finalAudio = await finalAudio.append(audioSegment);
-            finalAudio = await finalAudio.append(silence);
-        }
-
-        // Remove last silence
-        finalAudio = await finalAudio.slice(0, -600);
-        
-        // Export final audio
-        await finalAudio.export(finalAudioPath, { format: 'mp3' });
-    } else {
-        console.log("\nUsing existing Final.mp3 file...");
-        
-        if (!existsSync(finalAudioPath)) {
-            throw new Error(`Could not find existing audio file at ${finalAudioPath}`);
-        }
-        
-        // Calculate duration from existing file
-        const audio = await AudioSegment.fromFile(finalAudioPath);
-        sceneDurations.push(audio.duration); // Total duration in milliseconds
-        sceneAudioFiles.push(finalAudioPath);
-    }
-
-    console.log("Local processing completed.");
-    
+    // Mock data for testing
     return {
-        sceneImages,
-        sceneAudioFiles,
-        sceneDurations,
-        finalAudioPath,
-        thumbnailPath,
-        title
+        sceneImages: ['image1.jpg', 'image2.jpg'],
+        sceneAudioFiles: ['audio1.mp3', 'audio2.mp3'],
+        sceneDurations: [10, 15],
+        finalAudioPath: 'final_audio.mp3',
+        thumbnailPath: 'thumbnail.jpg',
+        title: 'Test Story Title'
     };
 }
 
-module.exports = {
-    initializeClients,
-    summarizeText,
-    generateImg,
-    saveImage,
-    combineAudio,
-    drawTextOnImage,
-    cropImage,
-    createTitles,
-    createThumbnail,
-    processLocal,
-
-    // Export clients for use in other functions
-    getOAIClient: () => oaiClient,
-    getORClient: () => orClient,
-    getReplicateClient: () => replicateClient,
-    getElevenLabsClient: () => elevenlabsClient
-};
+export { processLocal };

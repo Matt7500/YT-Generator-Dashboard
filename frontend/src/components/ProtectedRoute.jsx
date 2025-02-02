@@ -14,24 +14,20 @@ const LoadingScreen = () => {
 
 // Protected route for authenticated users
 export const ProtectedRoute = ({ children }) => {
-    const { session, isLoading, initialRoute } = userAuth();
+    const { session, isLoading } = userAuth();
     const location = useLocation();
-    
+
+    // Show loading state while checking authentication
     if (isLoading) {
         return <LoadingScreen />;
     }
-    
+
+    // Redirect to login if not authenticated
     if (!session) {
-        // Save the attempted route
-        sessionStorage.setItem('attemptedRoute', location.pathname);
-        return <Navigate to="/login" />;
+        // Save the attempted URL for redirecting after login
+        return <Navigate to="/login" state={{ from: location.pathname }} replace />;
     }
 
-    // If we have an initial route and we're at the root, redirect to it
-    if (initialRoute && location.pathname === '/') {
-        return <Navigate to={initialRoute} replace />;
-    }
-    
     return children;
 };
 

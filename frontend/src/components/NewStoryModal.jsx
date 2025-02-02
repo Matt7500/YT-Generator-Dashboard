@@ -1,140 +1,124 @@
-import React, { useState, useEffect } from 'react';
-import { FaPen } from 'react-icons/fa';
-import supabase from '../utils/supabase';
+import React, { useState } from 'react';
+import { FaPen, FaRobot, FaArrowRight, FaTimes } from 'react-icons/fa';
 import '../css/NewStoryModal.css';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import supabase from '../utils/supabase';
 
 export default function NewStoryModal({ isOpen, onClose, channelId }) {
     const navigate = useNavigate();
     const [isClosing, setIsClosing] = useState(false);
-    const initialFormState = {
-        title: '',
-        genre: '',
-        premise: ''
-    };
-
-    const [storyData, setStoryData] = useState(initialFormState);
-
-    // Reset form when modal closes
-    useEffect(() => {
-        if (!isOpen) {
-            setStoryData(initialFormState);
-            setIsClosing(false);
-        }
-    }, [isOpen]);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setStoryData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) throw new Error('No authenticated user');
-
-            const { data, error } = await supabase
-                .from('stories')
-                .insert([{
-                    title: storyData.title,
-                    genre: storyData.genre,
-                    premise: storyData.premise,
-                    user_id: session.user.id,
-                    channel_id: channelId,
-                    status: 'draft'
-                }])
-                .select()
-                .single();
-
-            if (error) throw error;
-
-            toast.success('Story created successfully!');
-            handleClose();
-            navigate(`/story-writer/${data.id}`);
-        } catch (error) {
-            console.error('Error creating story:', error);
-            toast.error('Failed to create story. Please try again.');
-        }
-    };
+    const [selectedOption, setSelectedOption] = useState(null);
 
     const handleClose = () => {
         setIsClosing(true);
         setTimeout(() => {
             onClose();
-            setStoryData(initialFormState);
-        }, 300); // Match this with CSS animation duration
+            setSelectedOption(null);
+            setIsClosing(false);
+        }, 300);
+    };
+
+    const handleOptionSelect = (option) => {
+        setSelectedOption(option);
+    };
+
+    const handleContinue = async () => {
+        if (!selectedOption) return;
+
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('No authenticated user');
+
+            if (selectedOption === 'manual') {
+                // Create an empty story for manual writing
+                const { data: newStory, error } = await supabase
+                    .from('stories')
+                    .insert([{
+                        title: 'Untitled Story',
+                        user_id: session.user.id,
+                        channel_id: channelId,
+                        status: 'draft',
+                        is_manual: true
+                    }])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                handleClose();
+                navigate(`/story-writer/${newStory.id}`);
+            } else {
+                // Navigate to the automated story creation flow
+                handleClose();
+                navigate('/create-automated-story', { 
+                    state: { channelId } 
+                });
+            }
+        } catch (error) {
+            console.error('Error creating story:', error);
+            toast.error(error.message || 'Failed to create story. Please try again.');
+        }
     };
 
     if (!isOpen) return null;
 
     return (
         <div className={`modal-overlay ${isClosing ? 'closing' : ''}`} onClick={handleClose}>
-            <div className={`modal-content ${isClosing ? 'closing' : ''}`} onClick={e => e.stopPropagation()}>
+            <div 
+                className={`modal-content ${isClosing ? 'closing' : ''}`} 
+                onClick={e => e.stopPropagation()}
+            >
                 <div className="modal-header">
                     <h2>Create New Story</h2>
+                    <p>Choose how you'd like to create your story</p>
                 </div>
-                <form onSubmit={handleSubmit} className="modal-form">
-                    <div className="form-group">
-                        <label htmlFor="title">Story Title</label>
-                        <input
-                            type="text"
-                            id="title"
-                            name="title"
-                            value={storyData.title}
-                            onChange={handleChange}
-                            placeholder="Enter story title"
-                            required
-                            className="form-input"
-                        />
+
+                <div className="options-container">
+                    <div 
+                        className={`option-card ${selectedOption === 'manual' ? 'selected' : ''}`}
+                        onClick={() => handleOptionSelect('manual')}
+                    >
+                        <div className="option-icon">
+                            <FaPen />
+                        </div>
+                        <h3 className="option-title">Manual Writing</h3>
+                        <p className="option-description">
+                            Write your story from scratch with our intuitive editor. 
+                            Perfect for when you want complete creative control.
+                        </p>
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="genre">Story Genre</label>
-                        <input
-                            type="text"
-                            id="genre"
-                            name="genre"
-                            value={storyData.genre}
-                            onChange={handleChange}
-                            placeholder="Enter story genre"
-                            required
-                            className="form-input"
-                        />
+
+                    <div 
+                        className={`option-card ${selectedOption === 'automated' ? 'selected' : ''}`}
+                        onClick={() => handleOptionSelect('automated')}
+                    >
+                        <div className="option-icon">
+                            <FaRobot />
+                        </div>
+                        <h3 className="option-title">AI-Assisted Writing</h3>
+                        <p className="option-description">
+                            Let our AI help you generate story ideas and content based on your input.
+                            Great for overcoming writer's block.
+                        </p>
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="premise">Story Premise</label>
-                        <textarea
-                            id="premise"
-                            name="premise"
-                            value={storyData.premise}
-                            onChange={handleChange}
-                            placeholder="Enter story premise"
-                            required
-                            className="form-textarea"
-                            rows="4"
-                        />
-                    </div>
-                    <div className="modal-actions">
-                        <button 
-                            type="button" 
-                            onClick={handleClose}
-                            className="cancel-button"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            type="submit"
-                            className="submit-button"
-                        >
-                            <FaPen /> Create Story
-                        </button>
-                    </div>
-                </form>
+                </div>
+
+                <div className="modal-actions">
+                    <button 
+                        className="cancel-button"
+                        onClick={handleClose}
+                    >
+                        <FaTimes /> Cancel
+                    </button>
+                    <button 
+                        className="continue-button"
+                        onClick={handleContinue}
+                        disabled={!selectedOption}
+                    >
+                        Continue <FaArrowRight />
+                    </button>
+                </div>
             </div>
         </div>
     );

@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import 'dotenv/config';
 import youtubeRoutes from './routes/youtube.routes.js';
 import authRoutes from './routes/auth.routes.js';
+import storyRoutes from './routes/story.routes.js';
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(express.json()); // Parse JSON bodies
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/youtube', youtubeRoutes);
+app.use('/api/story', storyRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

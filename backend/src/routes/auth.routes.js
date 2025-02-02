@@ -1,30 +1,59 @@
 import { Router } from 'express';
+import { body } from 'express-validator';
+import { validateRequest } from '../validators/validateRequest.js';
 import * as authService from '../services/auth.service.js';
 import { supabase } from '../config/supabase.js';
 
 const router = Router();
 
-// Sign up
-router.post('/signup', async (req, res) => {
-  try {
-    const { email, password, name } = req.body;
-    const data = await authService.signUp(email, password, name);
-    res.json(data);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
+// Sign up endpoint with validation and sanitization
+router.post(
+  '/signup',
+  [
+    body('email')
+      .isEmail().withMessage('Please enter a valid email address')
+      .normalizeEmail(),
+    body('password')
+      .isLength({ min: 6 })
+      .withMessage('Password should be at least 6 characters long'),
+    body('name')
+      .trim()
+      .notEmpty()
+      .withMessage('Name is required')
+  ],
+  validateRequest, // centralized error checking
+  async (req, res) => {
+    try {
+      const { email, password, name } = req.body;
+      const data = await authService.signUp(email, password, name);
+      res.json(data);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
   }
-});
+);
 
-// Sign in
-router.post('/signin', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const data = await authService.signIn(email, password);
-    res.json(data);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
+// Sign in endpoint with validation and sanitization
+router.post(
+  '/signin',
+  [
+    body('email')
+      .isEmail().withMessage('Please enter a valid email address')
+      .normalizeEmail(),
+    body('password')
+      .exists().withMessage('Password is required')
+  ],
+  validateRequest,
+  async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const data = await authService.signIn(email, password);
+      res.json(data);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
   }
-});
+);
 
 // Sign out
 router.post('/signout', async (req, res) => {

@@ -1,11 +1,18 @@
-const { MongoClient } = require('mongodb');
-require('dotenv').config();
+import { MongoClient } from 'mongodb';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config();
 
 // General Settings
-let settings = {
+const settings = {
     // API Keys
-    OAI_API_KEY: null,
-    OR_API_KEY: null,
+    OAI_API_KEY: process.env.OPENAI_API_KEY,
+    OR_API_KEY: process.env.OPENROUTER_API_KEY,
     VOICE_API_KEY: null,
     PEXELS_API_KEY: null,
     REPLICATE_API_KEY: null,
@@ -17,7 +24,7 @@ let settings = {
 
     // AI Model Settings
     OAI_MODEL: null,
-    OR_MODEL: null,
+    OR_MODEL: process.env.OPENROUTER_MODEL || "anthropic/claude-2",
     FT_MODEL: null,
     VOICE_MODEL: null,
 
@@ -46,11 +53,11 @@ let settings = {
     NEXT_UPLOAD_DATE: null,
 
     // Story Settings
-    STORY_PROFILE: null,
-    USE_REDDIT: null,
-    USE_FINE_TUNE: null,
+    STORY_PROFILE: process.env.STORY_PROFILE || "default",
+    USE_REDDIT: false,
+    USE_FINE_TUNE: false,
     STORY_TITLE_FT_MODEL: null,
-    NUM_SCENES: null,
+    NUM_SCENES: 8,
 
     // Audio Settings
     VOICE_ID: null,
@@ -76,7 +83,10 @@ let settings = {
     THUMBNAIL_PRIMARY_COLOR: null,
     THUMBNAIL_SECONDARY_COLOR: null,
     THUMBNAIL_STROKE_COLOR: null,
-    THUMBNAIL_STROKE_WIDTH: null
+    THUMBNAIL_STROKE_WIDTH: null,
+
+    // New settings
+    OPENROUTER_MODEL_REASONING: process.env.OPENROUTER_MODEL_REASONING || "anthropic/claude-2"
 };
 
 // MongoDB connection setup
@@ -114,7 +124,6 @@ async function getChannelSettings(username, channelName) {
         const db = client.db('YouTube-Dashboard');
         const collection = db.collection('everything');
 
-        // Log the search parameters
         console.log(`Searching for username: ${username}, channel: ${channelName}`);
 
         const document = await collection.findOne({ [username]: { $exists: true } });
@@ -122,14 +131,6 @@ async function getChannelSettings(username, channelName) {
         if (!document) {
             throw new Error(`No user found with username: ${username}`);
         }
-
-        // Log the found document structure
-        // console.log('Found document structure:', 
-        //     JSON.stringify({
-        //         username: Object.keys(document[username]),
-        //         hasChannels: !!document[username].channels
-        //     }, null, 2)
-        // );
 
         const channels = document[username].channels;
         if (!channels) {
@@ -140,9 +141,6 @@ async function getChannelSettings(username, channelName) {
         if (!channelSettings) {
             throw new Error(`No settings found for channel: ${channelName}`);
         }
-
-        // Log the found channel settings
-        //console.log('Found channel settings:', JSON.stringify(channelSettings, null, 2));
 
         return channelSettings;
     } catch (e) {
@@ -259,57 +257,5 @@ async function loadStoryProfiles() {
     }
 }
 
-// Export everything that's needed
-module.exports = {
-    settings,
-    initializeSettings,
-    initializeChannelSettings,
-    getUserSettings,
-    getChannelSettings,
-    loadStoryProfiles,
-    // Add getters for commonly accessed settings
-    get NUM_SCENES() { return settings.NUM_SCENES; },
-    get STORY_PROFILE() { return settings.STORY_PROFILE; },
-    get USE_REDDIT() { return settings.USE_REDDIT; },
-    get USE_FINE_TUNE() { return settings.USE_FINE_TUNE; },
-    get OR_MODEL() { return settings.OR_MODEL; },
-    get OAI_API_KEY() { return settings.OAI_API_KEY; },
-    get OR_API_KEY() { return settings.OR_API_KEY; },
-    get REPLICATE_API_KEY() { return settings.REPLICATE_API_KEY; },
-    get VOICE_API_KEY() { return settings.VOICE_API_KEY; },
-    get VOICE_MODEL() { return settings.VOICE_MODEL; },
-    get PEXELS_API_KEY() { return settings.PEXELS_API_KEY; },
-    get REDDIT_CLIENT_ID() { return settings.REDDIT_CLIENT_ID; },
-    get REDDIT_CLIENT_SECRET() { return settings.REDDIT_CLIENT_SECRET; },
-    get REDDIT_USER_AGENT() { return settings.REDDIT_USER_AGENT; },
-    get AWS_ACCESS_KEY() { return settings.AWS_ACCESS_KEY; },
-    get AWS_SECRET_KEY() { return settings.AWS_SECRET_KEY; },
-    get AMI_ID() { return settings.AMI_ID; },
-    get INSTANCE_TYPE() { return settings.INSTANCE_TYPE; },
-    get BASE_INSTANCE_NAME() { return settings.BASE_INSTANCE_NAME; },
-    get REGION() { return settings.REGION; },
-    // Channel-specific settings
-    get YOUTUBE_UPLOAD_ENABLED() { return settings.YOUTUBE_UPLOAD_ENABLED; },
-    get YOUTUBE_DESCRIPTION() { return settings.YOUTUBE_DESCRIPTION; },
-    get YOUTUBE_TAGS() { return settings.YOUTUBE_TAGS; },
-    get YOUTUBE_CATEGORY() { return settings.YOUTUBE_CATEGORY; },
-    get YOUTUBE_PRIVACY_STATUS() { return settings.YOUTUBE_PRIVACY_STATUS; },
-    get NEXT_UPLOAD_DATE() { return settings.NEXT_UPLOAD_DATE; },
-    get STORY_TITLE_FT_MODEL() { return settings.STORY_TITLE_FT_MODEL; },
-    get VOICE_ID() { return settings.VOICE_ID; },
-    get BACKGROUND_MUSIC() { return settings.BACKGROUND_MUSIC; },
-    get ORIGINAL_IMAGE() { return settings.ORIGINAL_IMAGE; },
-    get INTRO_VIDEO() { return settings.INTRO_VIDEO; },
-    get OUTRO_VIDEO() { return settings.OUTRO_VIDEO; },
-    get USE_PEXELS() { return settings.USE_PEXELS; },
-    get PEXELS_KEYWORDS() { return settings.PEXELS_KEYWORDS; },
-    get ADD_SUBTITLES() { return settings.ADD_SUBTITLES; },
-    get SUBTITLE_STYLE() { return settings.SUBTITLE_STYLE; },
-    get AUDIO_VIZ_CONFIG() { return settings.AUDIO_VIZ_CONFIG; },
-    get COLOR_METHOD() { return settings.COLOR_METHOD; },
-    get THUMBNAIL_FONT() { return settings.THUMBNAIL_FONT; },
-    get THUMBNAIL_PRIMARY_COLOR() { return settings.THUMBNAIL_PRIMARY_COLOR; },
-    get THUMBNAIL_SECONDARY_COLOR() { return settings.THUMBNAIL_SECONDARY_COLOR; },
-    get THUMBNAIL_STROKE_COLOR() { return settings.THUMBNAIL_STROKE_COLOR; },
-    get THUMBNAIL_STROKE_WIDTH() { return settings.THUMBNAIL_STROKE_WIDTH; }
-}; 
+export { initializeSettings, initializeChannelSettings, loadStoryProfiles };
+export default settings; 
