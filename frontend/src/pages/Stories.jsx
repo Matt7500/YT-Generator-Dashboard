@@ -5,6 +5,7 @@ import { FaSort, FaSortUp, FaSortDown, FaSearch, FaEdit, FaTrash, FaTimes, FaExc
 import { toast } from 'react-hot-toast';
 import '../css/Stories.css';
 import NewStoryModal from '../components/NewStoryModal';
+import { useLayout } from '../contexts/LayoutContext';
 
 const DeleteModal = ({ isOpen, onClose, onConfirm, storyTitle }) => {
     const [isClosing, setIsClosing] = useState(false);
@@ -55,6 +56,7 @@ const DeleteModal = ({ isOpen, onClose, onConfirm, storyTitle }) => {
 const Stories = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { PageWrapper } = useLayout();
     // State variables to manage stories, loading state, and any errors
     const [stories, setStories] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -218,26 +220,22 @@ const Stories = () => {
     // Show loading state
     if (loading) {
         return (
-            <div className="container">
-                <div className="content-container">
-                    <div className="stories-list-container">
-                        <p>Loading stories...</p>
-                    </div>
+            <PageWrapper>
+                <div className="stories-list-container">
+                    <p>Loading stories...</p>
                 </div>
-            </div>
+            </PageWrapper>
         );
     }
 
     // Show error state
     if (error) {
         return (
-            <div className="container">
-                <div className="content-container">
-                    <div className="stories-list-container">
-                        <p>Error: {error}</p>
-                    </div>
+            <PageWrapper>
+                <div className="stories-list-container">
+                    <p>Error: {error}</p>
                 </div>
-            </div>
+            </PageWrapper>
         );
     }
 
@@ -247,162 +245,160 @@ const Stories = () => {
     };
 
     return (
-        <div className="container">
-            <div className="content-container">
-                <div className="stories-list-container">
-                    <div className="filters-section">
-                        <div className="search-box">
-                            <FaSearch className="search-icon" />
-                            <input
-                                type="text"
-                                placeholder="Search stories..."
-                                value={filters.search}
-                                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                            />
-                        </div>
-                        <div className="filter-selects">
-                            <select
-                                value={filters.status}
-                                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                            >
-                                <option value="all">All Statuses</option>
-                                {statuses.filter(status => status !== 'all').map(status => (
-                                    <option key={status} value={status}>{status}</option>
-                                ))}
-                            </select>
-                            <select
-                                value={filters.genre}
-                                onChange={(e) => setFilters(prev => ({ ...prev, genre: e.target.value }))}
-                            >
-                                <option value="all">All Genres</option>
-                                {genres.filter(genre => genre !== 'all').map(genre => (
-                                    <option key={genre} value={genre}>{genre}</option>
-                                ))}
-                            </select>
-                        </div>
+        <PageWrapper>
+            <div className="stories-list-container">
+                <div className="filters-section">
+                    <div className="search-box">
+                        <FaSearch className="search-icon" />
+                        <input
+                            type="text"
+                            placeholder="Search stories..."
+                            value={filters.search}
+                            onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                        />
                     </div>
-
-                    <div className="list-categories">
-                        <p className="sortable" onClick={() => handleSort('title')}>
-                            Title {getSortIcon('title')}
-                        </p>
-                        <p>Channel</p>
-                        <p className="sortable" onClick={() => handleSort('created_at')}>
-                            Date {getSortIcon('created_at')}
-                        </p>
-                        <p className="sortable" onClick={() => handleSort('genre')}>
-                            Genre {getSortIcon('genre')}
-                        </p>
-                        <p className="sortable" onClick={() => handleSort('status')}>
-                            Status {getSortIcon('status')}
-                        </p>
-                        <p className="sortable" onClick={() => handleSort('word_count')}>
-                            Word Count {getSortIcon('word_count')}
-                        </p>
-                        <p>Actions</p>
+                    <div className="filter-selects">
+                        <select
+                            value={filters.status}
+                            onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                        >
+                            <option value="all">All Statuses</option>
+                            {statuses.filter(status => status !== 'all').map(status => (
+                                <option key={status} value={status}>{status}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={filters.genre}
+                            onChange={(e) => setFilters(prev => ({ ...prev, genre: e.target.value }))}
+                        >
+                            <option value="all">All Genres</option>
+                            {genres.filter(genre => genre !== 'all').map(genre => (
+                                <option key={genre} value={genre}>{genre}</option>
+                            ))}
+                        </select>
                     </div>
+                </div>
 
-                    {filteredAndSortedStories.length === 0 ? (
-                        <p style={{ padding: '20px' }}>No stories found. Create your first story!</p>
-                    ) : (
-                        filteredAndSortedStories.map((story) => {
-                            console.log('Story channel data:', story.youtube_accounts);
-                            return (
-                                <div key={story.id} className="stories-card">
-                                    <p>{story.title}</p>
-                                    <div className="channel-info">
-                                        <div className="channel-thumbnail-wrapper-small">
-                                            {story.youtube_accounts && loadedImages[story.youtube_accounts.id] === false && (
-                                                <div className="thumbnail-placeholder-small pulse" />
-                                            )}
-                                            <img 
-                                                src={story.youtube_accounts?.thumbnail_url || '/default-channel.png'} 
-                                                alt={`${story.youtube_accounts?.channel_name || 'Default'} thumbnail`}
-                                                className={`channel-thumbnail-small ${story.youtube_accounts && loadedImages[story.youtube_accounts.id] ? 'loaded' : ''}`}
-                                                loading="lazy"
-                                                onError={(e) => {
-                                                    const currentSrc = e.target.src;
-                                                    
-                                                    // Don't retry if we're already on the default image
-                                                    if (currentSrc === '/default-channel.png') {
-                                                        if (story.youtube_accounts) {
-                                                            setLoadedImages(prev => ({
-                                                                ...prev,
-                                                                [story.youtube_accounts.id]: false
-                                                            }));
-                                                        }
-                                                        return;
-                                                    }
+                <div className="list-categories">
+                    <p className="sortable" onClick={() => handleSort('title')}>
+                        Title {getSortIcon('title')}
+                    </p>
+                    <p>Channel</p>
+                    <p className="sortable" onClick={() => handleSort('created_at')}>
+                        Date {getSortIcon('created_at')}
+                    </p>
+                    <p className="sortable" onClick={() => handleSort('genre')}>
+                        Genre {getSortIcon('genre')}
+                    </p>
+                    <p className="sortable" onClick={() => handleSort('status')}>
+                        Status {getSortIcon('status')}
+                    </p>
+                    <p className="sortable" onClick={() => handleSort('word_count')}>
+                        Word Count {getSortIcon('word_count')}
+                    </p>
+                    <p>Actions</p>
+                </div>
 
-                                                    // Try different image sizes and formats
-                                                    if (currentSrc.includes('=s240-c-k-c0x00ffffff-no-rj')) {
-                                                        e.target.src = currentSrc.split('=')[0];
-                                                    } else if (currentSrc.includes('yt3.ggpht.com') || currentSrc.includes('googleusercontent.com')) {
-                                                        e.target.src = `${currentSrc.split('=')[0]}=s240-c-k-c0x00ffffff-no-rj`;
-                                                    } else {
-                                                        e.target.src = '/default-channel.png';
-                                                        if (story.youtube_accounts) {
-                                                            setLoadedImages(prev => ({
-                                                                ...prev,
-                                                                [story.youtube_accounts.id]: false
-                                                            }));
-                                                        }
-                                                    }
-                                                }}
-                                                onLoad={(e) => {
-                                                    if (e.target.src !== '/default-channel.png' && story.youtube_accounts) {
+                {filteredAndSortedStories.length === 0 ? (
+                    <p style={{ padding: '20px' }}>No stories found. Create your first story!</p>
+                ) : (
+                    filteredAndSortedStories.map((story) => {
+                        console.log('Story channel data:', story.youtube_accounts);
+                        return (
+                            <div key={story.id} className="stories-card">
+                                <p>{story.title}</p>
+                                <div className="channel-info">
+                                    <div className="channel-thumbnail-wrapper-small">
+                                        {story.youtube_accounts && loadedImages[story.youtube_accounts.id] === false && (
+                                            <div className="thumbnail-placeholder-small pulse" />
+                                        )}
+                                        <img 
+                                            src={story.youtube_accounts?.thumbnail_url || '/default-channel.png'} 
+                                            alt={`${story.youtube_accounts?.channel_name || 'Default'} thumbnail`}
+                                            className={`channel-thumbnail-small ${story.youtube_accounts && loadedImages[story.youtube_accounts.id] ? 'loaded' : ''}`}
+                                            loading="lazy"
+                                            onError={(e) => {
+                                                const currentSrc = e.target.src;
+                                                
+                                                // Don't retry if we're already on the default image
+                                                if (currentSrc === '/default-channel.png') {
+                                                    if (story.youtube_accounts) {
                                                         setLoadedImages(prev => ({
                                                             ...prev,
-                                                            [story.youtube_accounts.id]: true
+                                                            [story.youtube_accounts.id]: false
                                                         }));
                                                     }
-                                                }}
-                                            />
-                                        </div>
-                                        <span>{story.youtube_accounts?.channel_name || 'No channel selected'}</span>
+                                                    return;
+                                                }
+
+                                                // Try different image sizes and formats
+                                                if (currentSrc.includes('=s240-c-k-c0x00ffffff-no-rj')) {
+                                                    e.target.src = currentSrc.split('=')[0];
+                                                } else if (currentSrc.includes('yt3.ggpht.com') || currentSrc.includes('googleusercontent.com')) {
+                                                    e.target.src = `${currentSrc.split('=')[0]}=s240-c-k-c0x00ffffff-no-rj`;
+                                                } else {
+                                                    e.target.src = '/default-channel.png';
+                                                    if (story.youtube_accounts) {
+                                                        setLoadedImages(prev => ({
+                                                            ...prev,
+                                                            [story.youtube_accounts.id]: false
+                                                        }));
+                                                    }
+                                                }
+                                            }}
+                                            onLoad={(e) => {
+                                                if (e.target.src !== '/default-channel.png' && story.youtube_accounts) {
+                                                    setLoadedImages(prev => ({
+                                                        ...prev,
+                                                        [story.youtube_accounts.id]: true
+                                                    }));
+                                                }
+                                            }}
+                                        />
                                     </div>
-                                    <p>{new Date(story.created_at).toLocaleDateString()}</p>
-                                    <p>{story.genre}</p>
-                                    <p className={`status-badge ${story.status === 'in_progress' ? 'draft' : story.status}`}>{
-                                        story.status === 'in_progress' || story.status === 'draft' ? 'Draft' :
-                                        story.status === 'completed' ? 'Completed' :
-                                        story.status
-                                    }</p>
-                                    <p>{story.word_count}</p>
-                                    <div className="action-buttons">
-                                        <button 
-                                            className="action-btn edit-btn"
-                                            onClick={() => handleEditStory(story.id)}
-                                            title="Edit story"
-                                        >
-                                            <FaEdit />
-                                        </button>
-                                        <button 
-                                            className="action-btn delete-btn"
-                                            onClick={() => openDeleteModal(story)}
-                                            title="Delete story"
-                                        >
-                                            <FaTrash />
-                                        </button>
-                                    </div>
+                                    <span>{story.youtube_accounts?.channel_name || 'No channel selected'}</span>
                                 </div>
-                            );
-                        })
-                    )}
-                </div>
-                <DeleteModal 
-                    isOpen={deleteModal.isOpen}
-                    onClose={() => setDeleteModal({ isOpen: false, storyId: null, storyTitle: '' })}
-                    onConfirm={() => handleDeleteStory(deleteModal.storyId)}
-                    storyTitle={deleteModal.storyTitle}
-                />
-                <NewStoryModal 
-                    isOpen={isModalOpen} 
-                    onClose={() => setIsModalOpen(false)}
-                    navigate={navigate}
-                />
+                                <p>{new Date(story.created_at).toLocaleDateString()}</p>
+                                <p>{story.genre}</p>
+                                <p className={`status-badge ${story.status === 'in_progress' ? 'draft' : story.status}`}>{
+                                    story.status === 'in_progress' || story.status === 'draft' ? 'Draft' :
+                                    story.status === 'completed' ? 'Completed' :
+                                    story.status
+                                }</p>
+                                <p>{story.word_count}</p>
+                                <div className="action-buttons">
+                                    <button 
+                                        className="action-btn edit-btn"
+                                        onClick={() => handleEditStory(story.id)}
+                                        title="Edit story"
+                                    >
+                                        <FaEdit />
+                                    </button>
+                                    <button 
+                                        className="action-btn delete-btn"
+                                        onClick={() => openDeleteModal(story)}
+                                        title="Delete story"
+                                    >
+                                        <FaTrash />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
             </div>
-        </div>
+            <DeleteModal 
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ isOpen: false, storyId: null, storyTitle: '' })}
+                onConfirm={() => handleDeleteStory(deleteModal.storyId)}
+                storyTitle={deleteModal.storyTitle}
+            />
+            <NewStoryModal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)}
+                navigate={navigate}
+            />
+        </PageWrapper>
     );
 };
 

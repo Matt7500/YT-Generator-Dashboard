@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as authService from '../services/auth.service.js';
-import { requireAuth } from '../middleware/auth.middleware.js';
+import { supabase } from '../config/supabase.js';
 
 const router = Router();
 
@@ -27,7 +27,7 @@ router.post('/signin', async (req, res) => {
 });
 
 // Sign out
-router.post('/signout', requireAuth, async (req, res) => {
+router.post('/signout', async (req, res) => {
   try {
     await authService.signOut();
     res.json({ message: 'Signed out successfully' });
@@ -37,9 +37,22 @@ router.post('/signout', requireAuth, async (req, res) => {
 });
 
 // Get user profile
-router.get('/profile', requireAuth, async (req, res) => {
+router.get('/profile', async (req, res) => {
   try {
-    const profile = await authService.getUserProfile(req.user.id);
+    // Get the user's JWT from the Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'No authorization header' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const profile = await authService.getUserProfile(user.id);
     res.json(profile);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -47,7 +60,7 @@ router.get('/profile', requireAuth, async (req, res) => {
 });
 
 // Update user profile
-router.put('/profile', requireAuth, async (req, res) => {
+router.put('/profile', async (req, res) => {
   try {
     const updates = req.body;
     const profile = await authService.updateProfile(req.user.id, updates);
@@ -58,7 +71,7 @@ router.put('/profile', requireAuth, async (req, res) => {
 });
 
 // Update password
-router.put('/password', requireAuth, async (req, res) => {
+router.put('/password', async (req, res) => {
   try {
     const { newPassword } = req.body;
     await authService.updatePassword(newPassword);

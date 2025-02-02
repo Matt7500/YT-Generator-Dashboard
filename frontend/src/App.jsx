@@ -17,6 +17,7 @@ import YouTubeCallback from './pages/YouTubeCallback';
 import AuthCallback from './pages/AuthCallback';
 import StoryWriter from './pages/StoryWriter';
 import Stories from './pages/Stories';
+import { LayoutProvider } from './contexts/LayoutContext';
 
 // Loading screen component
 const LoadingScreen = () => {
@@ -184,7 +185,9 @@ function App() {
     <Router>
       <AuthContextProvider>
         <ThemeProvider>
-          <AppRoot />
+          <LayoutProvider>
+            <AppRoot />
+          </LayoutProvider>
         </ThemeProvider>
       </AuthContextProvider>
     </Router>

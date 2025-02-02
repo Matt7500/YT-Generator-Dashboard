@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 
 const ThemeContext = createContext();
 
@@ -11,15 +12,15 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-    // Initialize theme from localStorage or default to 'light'
+    // Initialize theme from cookie or default to 'light'
     const [theme, setTheme] = useState(() => {
-        const savedTheme = localStorage.getItem('theme');
+        const savedTheme = Cookies.get('theme');
         return savedTheme || 'light';
     });
 
-    // Update localStorage and document class when theme changes
+    // Update cookie and document class when theme changes
     useEffect(() => {
-        localStorage.setItem('theme', theme);
+        Cookies.set('theme', theme, { expires: 365 }); // Cookie expires in 1 year
         document.documentElement.setAttribute('data-theme', theme);
     }, [theme]);
 

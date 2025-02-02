@@ -62,11 +62,60 @@ class YouTubeService {
         }
     }
 
+    async getChannelStatistics(channelId, userId) {
+        console.log('\n=== Fetching Channel Statistics ===');
+        console.log('Channel ID:', channelId);
+        console.log('User ID:', userId);
+
+        try {
+            const response = await apiService.request(`/youtube/channels/${channelId}/stats`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                params: { userId }
+            });
+
+            console.log('Statistics response:', {
+                channelId: response.channelId,
+                subscriberCount: response.subscriberCount,
+                videoCount: response.videoCount,
+                viewCount: response.viewCount,
+                lastUpdated: response.lastUpdated
+            });
+
+            return response;
+        } catch (error) {
+            console.error('\n=== Fetch Statistics Failed ===');
+            console.error('Error details:', {
+                message: error.message,
+                channelId,
+                userId
+            });
+            throw error;
+        }
+    }
+
     async updateChannelStats(channelId, userId) {
-        return apiService.request(`/youtube/channels/${channelId}/stats`, {
-            method: 'PUT',
-            body: JSON.stringify({ userId })
-        });
+        console.log('\n=== Updating Channel Statistics ===');
+        try {
+            // Force a fresh fetch of statistics by clearing cache first
+            await apiService.request(`/youtube/channels/${channelId}/stats/cache`, {
+                method: 'DELETE',
+                body: JSON.stringify({ userId })
+            });
+
+            // Get fresh statistics
+            return this.getChannelStatistics(channelId, userId);
+        } catch (error) {
+            console.error('\n=== Update Statistics Failed ===');
+            console.error('Error details:', {
+                message: error.message,
+                channelId,
+                userId
+            });
+            throw error;
+        }
     }
 
     async disconnectChannel(channelId, userId) {
@@ -76,37 +125,20 @@ class YouTubeService {
         });
     }
 
-    getAuthUrl() {
-        console.log('\n=== Generating YouTube Auth URL ===');
-        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-        const redirectUri = `${window.location.origin}/auth/youtube/callback`;
-        
-        const params = {
-            client_id: clientId,
-            redirect_uri: redirectUri,
-            response_type: 'code',
-            scope: 'https://www.googleapis.com/auth/youtube.readonly',
-            access_type: 'offline',
-            prompt: 'consent',
-            include_granted_scopes: 'true',
-            state: 'youtube_auth'
-        };
-
-        console.log('OAuth parameters:', {
-            clientId: clientId?.substring(0, 10) + '...',
-            redirectUri,
-            scope: params.scope
-        });
-
-        const queryString = Object.entries(params)
-            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-            .join('&');
-
-        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${queryString}`;
-        console.log('Generated auth URL:', authUrl);
-        console.log('=== Auth URL Generation Complete ===\n');
-
-        return authUrl;
+    async getAuthUrl() {
+        console.log('\n=== Fetching YouTube Auth URL ===');
+        try {
+            const response = await apiService.request('/youtube/auth-url');
+            console.log('Received auth URL from backend');
+            console.log('=== Auth URL Fetch Complete ===\n');
+            return response.authUrl;
+        } catch (error) {
+            console.error('\n=== Auth URL Fetch Failed ===');
+            console.error('Error details:', {
+                message: error.message
+            });
+            throw error;
+        }
     }
 }
 

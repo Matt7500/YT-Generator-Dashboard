@@ -4,6 +4,7 @@ import { userAuth } from '../contexts/AuthContext';
 import supabase from '../clients/supabaseClient';
 import '../css/Settings.css';
 import { youtubeService } from '../services/youtubeService';
+import { useLayout } from '../contexts/LayoutContext';
 
 const Settings = () => {
     const [name, setName] = useState('');
@@ -31,6 +32,7 @@ const Settings = () => {
     const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
     const [isNewPasswordFocused, setIsNewPasswordFocused] = useState(false);
     const [message, setMessage] = useState(null);
+    const { PageWrapper } = useLayout();
 
     const { updatePassword } = userAuth();
 
@@ -390,319 +392,317 @@ const Settings = () => {
     };
 
     return (
-        <div className="settings-container">
-            <div className="settings-content">
-                <h1 className="settings-title">Account Settings</h1>
+        <div className="settings-content">
+            <h1 className="settings-title">Account Settings</h1>
 
-                {error && <div className="error-message">{error}</div>}
-                {success && <div className="success-message">{success}</div>}
-                {message && (
-                    <div className={`${message.type === 'error' ? 'error-message' : 'success-message'}`}>
-                        {message.text}
-                    </div>
-                )}
+            {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">{success}</div>}
+            {message && (
+                <div className={`${message.type === 'error' ? 'error-message' : 'success-message'}`}>
+                    {message.text}
+                </div>
+            )}
 
-                <div className="settings-section">
-                    <div className="settings-card">
-                        <h3>Profile Information</h3>
-                        <form className="settings-form" onSubmit={handleUpdateName}>
-                            <div className="form-group">
-                                <label htmlFor="name">Name</label>
+            <div className="settings-section">
+                <div className="settings-card">
+                    <h3>Profile Information</h3>
+                    <form className="settings-form" onSubmit={handleUpdateName}>
+                        <div className="form-group">
+                            <label htmlFor="name">Name</label>
+                            <input
+                                type="text"
+                                id="name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Enter your name"
+                                required
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="primary-button"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Updating...' : 'Update Name'}
+                        </button>
+                    </form>
+                </div>
+
+                <div className="settings-card">
+                    <h3>Change Password</h3>
+                    <form className="settings-form" onSubmit={handleUpdatePassword}>
+                        <div className="form-group">
+                            <label htmlFor="currentPassword">Current Password</label>
+                            <div className="password-input-container">
                                 <input
-                                    type="text"
-                                    id="name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    placeholder="Enter your name"
+                                    type={showCurrentPassword ? "text" : "password"}
+                                    id="currentPassword"
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    placeholder="Enter current password"
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                    tabIndex="-1"
+                                >
+                                    {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
                             </div>
-                            <button
-                                type="submit"
-                                className="primary-button"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? 'Updating...' : 'Update Name'}
-                            </button>
-                        </form>
-                    </div>
+                        </div>
 
-                    <div className="settings-card">
-                        <h3>Change Password</h3>
-                        <form className="settings-form" onSubmit={handleUpdatePassword}>
-                            <div className="form-group">
-                                <label htmlFor="currentPassword">Current Password</label>
-                                <div className="password-input-container">
-                                    <input
-                                        type={showCurrentPassword ? "text" : "password"}
-                                        id="currentPassword"
-                                        value={currentPassword}
-                                        onChange={(e) => setCurrentPassword(e.target.value)}
-                                        placeholder="Enter current password"
-                                        required
-                                    />
+                        <div className="form-group password-group">
+                            <label htmlFor="newPassword">New Password</label>
+                            <div className="password-input-container">
+                                <input
+                                    type={showNewPassword ? "text" : "password"}
+                                    id="newPassword"
+                                    value={newPassword}
+                                    onChange={(e) => {
+                                        setNewPassword(e.target.value);
+                                        validatePassword(e.target.value);
+                                    }}
+                                    onFocus={() => setIsNewPasswordFocused(true)}
+                                    onBlur={() => setIsNewPasswordFocused(false)}
+                                    placeholder="Enter new password"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    tabIndex="-1"
+                                >
+                                    {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
+                            </div>
+                            <div className={`password-requirements ${isNewPasswordFocused ? 'visible' : ''}`}>
+                                <h4>Password Requirements:</h4>
+                                <ul>
+                                    <li className={passwordRequirements.minLength ? 'valid' : 'invalid'}>
+                                        {passwordRequirements.minLength ? <FaCheck /> : <FaTimes />}
+                                        At least 8 characters long
+                                    </li>
+                                    <li className={passwordRequirements.hasUpperCase ? 'valid' : 'invalid'}>
+                                        {passwordRequirements.hasUpperCase ? <FaCheck /> : <FaTimes />}
+                                        One uppercase letter
+                                    </li>
+                                    <li className={passwordRequirements.hasLowerCase ? 'valid' : 'invalid'}>
+                                        {passwordRequirements.hasLowerCase ? <FaCheck /> : <FaTimes />}
+                                        One lowercase letter
+                                    </li>
+                                    <li className={passwordRequirements.hasNumber ? 'valid' : 'invalid'}>
+                                        {passwordRequirements.hasNumber ? <FaCheck /> : <FaTimes />}
+                                        One number
+                                    </li>
+                                    <li className={passwordRequirements.hasSpecialChar ? 'valid' : 'invalid'}>
+                                        {passwordRequirements.hasSpecialChar ? <FaCheck /> : <FaTimes />}
+                                        One special character
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="confirmPassword">Confirm New Password</label>
+                            <div className="password-input-container">
+                                <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    id="confirmPassword"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="Confirm new password"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    tabIndex="-1"
+                                >
+                                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="primary-button"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Updating...' : 'Update Password'}
+                        </button>
+                    </form>
+                </div>
+
+                <div className="settings-card">
+                    <h3>Two-Factor Authentication</h3>
+                    <div className="tfa-container">
+                        <div className="tfa-toggle">
+                            <span>Enable Two-Factor Authentication</span>
+                            <label className="switch">
+                                <input
+                                    type="checkbox"
+                                    checked={twoFactorEnabled}
+                                    onChange={handleToggle2FA}
+                                    disabled={isLoading}
+                                />
+                                <span className="slider round"></span>
+                            </label>
+                        </div>
+
+                        {qrCode && (
+                            <div className="tfa-setup">
+                                <p>Scan this QR code with your authenticator app:</p>
+                                <img src={qrCode} alt="2FA QR Code" className="qr-code" />
+                                <form className="verification-form" onSubmit={handleVerify2FA}>
+                                    <div className="form-group">
+                                        <label htmlFor="verificationCode">Verification Code</label>
+                                        <input
+                                            type="text"
+                                            id="verificationCode"
+                                            value={verificationCode}
+                                            onChange={(e) => setVerificationCode(e.target.value)}
+                                            placeholder="Enter verification code"
+                                            required
+                                        />
+                                    </div>
                                     <button
-                                        type="button"
-                                        className="password-toggle"
-                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                        tabIndex="-1"
-                                    >
-                                        {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="form-group password-group">
-                                <label htmlFor="newPassword">New Password</label>
-                                <div className="password-input-container">
-                                    <input
-                                        type={showNewPassword ? "text" : "password"}
-                                        id="newPassword"
-                                        value={newPassword}
-                                        onChange={(e) => {
-                                            setNewPassword(e.target.value);
-                                            validatePassword(e.target.value);
-                                        }}
-                                        onFocus={() => setIsNewPasswordFocused(true)}
-                                        onBlur={() => setIsNewPasswordFocused(false)}
-                                        placeholder="Enter new password"
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        className="password-toggle"
-                                        onClick={() => setShowNewPassword(!showNewPassword)}
-                                        tabIndex="-1"
-                                    >
-                                        {showNewPassword ? <FaEyeSlash /> : <FaEye />}
-                                    </button>
-                                </div>
-                                <div className={`password-requirements ${isNewPasswordFocused ? 'visible' : ''}`}>
-                                    <h4>Password Requirements:</h4>
-                                    <ul>
-                                        <li className={passwordRequirements.minLength ? 'valid' : 'invalid'}>
-                                            {passwordRequirements.minLength ? <FaCheck /> : <FaTimes />}
-                                            At least 8 characters long
-                                        </li>
-                                        <li className={passwordRequirements.hasUpperCase ? 'valid' : 'invalid'}>
-                                            {passwordRequirements.hasUpperCase ? <FaCheck /> : <FaTimes />}
-                                            One uppercase letter
-                                        </li>
-                                        <li className={passwordRequirements.hasLowerCase ? 'valid' : 'invalid'}>
-                                            {passwordRequirements.hasLowerCase ? <FaCheck /> : <FaTimes />}
-                                            One lowercase letter
-                                        </li>
-                                        <li className={passwordRequirements.hasNumber ? 'valid' : 'invalid'}>
-                                            {passwordRequirements.hasNumber ? <FaCheck /> : <FaTimes />}
-                                            One number
-                                        </li>
-                                        <li className={passwordRequirements.hasSpecialChar ? 'valid' : 'invalid'}>
-                                            {passwordRequirements.hasSpecialChar ? <FaCheck /> : <FaTimes />}
-                                            One special character
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="confirmPassword">Confirm New Password</label>
-                                <div className="password-input-container">
-                                    <input
-                                        type={showConfirmPassword ? "text" : "password"}
-                                        id="confirmPassword"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        placeholder="Confirm new password"
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        className="password-toggle"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        tabIndex="-1"
-                                    >
-                                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="primary-button"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? 'Updating...' : 'Update Password'}
-                            </button>
-                        </form>
-                    </div>
-
-                    <div className="settings-card">
-                        <h3>Two-Factor Authentication</h3>
-                        <div className="tfa-container">
-                            <div className="tfa-toggle">
-                                <span>Enable Two-Factor Authentication</span>
-                                <label className="switch">
-                                    <input
-                                        type="checkbox"
-                                        checked={twoFactorEnabled}
-                                        onChange={handleToggle2FA}
+                                        type="submit"
+                                        className="primary-button"
                                         disabled={isLoading}
-                                    />
-                                    <span className="slider round"></span>
-                                </label>
+                                    >
+                                        {isLoading ? 'Verifying...' : 'Verify'}
+                                    </button>
+                                </form>
                             </div>
+                        )}
+                    </div>
+                </div>
+            </div>
 
-                            {qrCode && (
-                                <div className="tfa-setup">
-                                    <p>Scan this QR code with your authenticator app:</p>
-                                    <img src={qrCode} alt="2FA QR Code" className="qr-code" />
-                                    <form className="verification-form" onSubmit={handleVerify2FA}>
-                                        <div className="form-group">
-                                            <label htmlFor="verificationCode">Verification Code</label>
-                                            <input
-                                                type="text"
-                                                id="verificationCode"
-                                                value={verificationCode}
-                                                onChange={(e) => setVerificationCode(e.target.value)}
-                                                placeholder="Enter verification code"
-                                                required
+            <div className="settings-section">
+                <h2>Connections</h2>
+                
+                <div className="settings-card">
+                    <h3>YouTube Accounts</h3>
+                    <div className="youtube-accounts">
+                        {isLoadingAccounts ? (
+                            <p>Loading accounts...</p>
+                        ) : youtubeAccounts.length > 0 ? (
+                            <div className="channels-list">
+                                {youtubeAccounts.map(account => (
+                                    <div key={account.id} className="channel-item">
+                                        <div className="channel-thumbnail-container">
+                                            <img
+                                                src={account.thumbnail_url || '/default-channel.png'}
+                                                alt={`${account.channel_name} thumbnail`}
+                                                className={`channel-thumbnail ${account.thumbnail_url ? '' : 'loaded'}`}
+                                                loading="lazy"
+                                                onLoad={(e) => e.target.classList.add('loaded')}
+                                                onError={(e) => {
+                                                    if (!e.target.retryAttempt) {
+                                                        e.target.retryAttempt = true;
+                                                        e.target.src = account.thumbnail_url;
+                                                    } else {
+                                                        e.target.src = '/default-channel.png';
+                                                        e.target.classList.add('loaded');
+                                                        e.target.onerror = null;
+                                                    }
+                                                }}
                                             />
                                         </div>
+                                        <div className="channel-info">
+                                            <h4>{account.channel_name}</h4>
+                                            <div className="channel-stats">
+                                                <span>{new Intl.NumberFormat().format(account.subscriber_count)} subscribers</span>
+                                                <span>•</span>
+                                                <span>{new Intl.NumberFormat().format(account.video_count)} videos</span>
+                                            </div>
+                                        </div>
                                         <button
-                                            type="submit"
-                                            className="primary-button"
-                                            disabled={isLoading}
+                                            className="remove-channel-btn"
+                                            onClick={() => handleRemoveYouTubeAccount(account.channel_id)}
+                                            aria-label={`Remove ${account.channel_name}`}
                                         >
-                                            {isLoading ? 'Verifying...' : 'Verify'}
+                                            <FaTrash className="remove-icon" />
                                         </button>
-                                    </form>
-                                </div>
-                            )}
-                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p>No YouTube accounts connected</p>
+                        )}
+                        <button
+                            className="youtube-connect-button"
+                            onClick={handleConnectYouTube}
+                            disabled={isLoading}
+                        >
+                            <FaYoutube className="youtube-icon" />
+                            Connect YouTube Account
+                        </button>
                     </div>
                 </div>
 
-                <div className="settings-section">
-                    <h2>Connections</h2>
-                    
-                    <div className="settings-card">
-                        <h3>YouTube Accounts</h3>
-                        <div className="youtube-accounts">
-                            {isLoadingAccounts ? (
-                                <p>Loading accounts...</p>
-                            ) : youtubeAccounts.length > 0 ? (
-                                <div className="channels-list">
-                                    {youtubeAccounts.map(account => (
-                                        <div key={account.id} className="channel-item">
-                                            <div className="channel-thumbnail-container">
-                                                <img
-                                                    src={account.thumbnail_url || '/default-channel.png'}
-                                                    alt={`${account.channel_name} thumbnail`}
-                                                    className={`channel-thumbnail ${account.thumbnail_url ? '' : 'loaded'}`}
-                                                    loading="lazy"
-                                                    onLoad={(e) => e.target.classList.add('loaded')}
-                                                    onError={(e) => {
-                                                        if (!e.target.retryAttempt) {
-                                                            e.target.retryAttempt = true;
-                                                            e.target.src = account.thumbnail_url;
-                                                        } else {
-                                                            e.target.src = '/default-channel.png';
-                                                            e.target.classList.add('loaded');
-                                                            e.target.onerror = null;
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                            <div className="channel-info">
-                                                <h4>{account.channel_name}</h4>
-                                                <div className="channel-stats">
-                                                    <span>{new Intl.NumberFormat().format(account.subscriber_count)} subscribers</span>
-                                                    <span>•</span>
-                                                    <span>{new Intl.NumberFormat().format(account.video_count)} videos</span>
-                                                </div>
-                                            </div>
-                                            <button
-                                                className="remove-channel-btn"
-                                                onClick={() => handleRemoveYouTubeAccount(account.channel_id)}
-                                                aria-label={`Remove ${account.channel_name}`}
-                                            >
-                                                <FaTrash className="remove-icon" />
-                                            </button>
+                <div className="settings-card">
+                    <h3>TikTok Accounts</h3>
+                    <div className="tiktok-accounts">
+                        {isLoadingAccounts ? (
+                            <p>Loading accounts...</p>
+                        ) : tiktokAccounts.length > 0 ? (
+                            <div className="channels-list">
+                                {tiktokAccounts.map(account => (
+                                    <div key={account.id} className="channel-item">
+                                        <div className="channel-thumbnail-container">
+                                            <img
+                                                src={account.avatar_url || '/default-tiktok.png'}
+                                                alt={account.username}
+                                                className={`channel-thumbnail ${account.avatar_url ? '' : 'loaded'}`}
+                                                loading="lazy"
+                                                onLoad={(e) => e.target.classList.add('loaded')}
+                                                onError={(e) => {
+                                                    if (!e.target.retryAttempt) {
+                                                        e.target.retryAttempt = true;
+                                                        e.target.src = account.avatar_url;
+                                                    } else {
+                                                        e.target.src = '/default-tiktok.png';
+                                                        e.target.classList.add('loaded');
+                                                        e.target.onerror = null;
+                                                    }
+                                                }}
+                                            />
                                         </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p>No YouTube accounts connected</p>
-                            )}
-                            <button
-                                className="youtube-connect-button"
-                                onClick={handleConnectYouTube}
-                                disabled={isLoading}
-                            >
-                                <FaYoutube className="youtube-icon" />
-                                Connect YouTube Account
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="settings-card">
-                        <h3>TikTok Accounts</h3>
-                        <div className="tiktok-accounts">
-                            {isLoadingAccounts ? (
-                                <p>Loading accounts...</p>
-                            ) : tiktokAccounts.length > 0 ? (
-                                <div className="channels-list">
-                                    {tiktokAccounts.map(account => (
-                                        <div key={account.id} className="channel-item">
-                                            <div className="channel-thumbnail-container">
-                                                <img
-                                                    src={account.avatar_url || '/default-tiktok.png'}
-                                                    alt={account.username}
-                                                    className={`channel-thumbnail ${account.avatar_url ? '' : 'loaded'}`}
-                                                    loading="lazy"
-                                                    onLoad={(e) => e.target.classList.add('loaded')}
-                                                    onError={(e) => {
-                                                        if (!e.target.retryAttempt) {
-                                                            e.target.retryAttempt = true;
-                                                            e.target.src = account.avatar_url;
-                                                        } else {
-                                                            e.target.src = '/default-tiktok.png';
-                                                            e.target.classList.add('loaded');
-                                                            e.target.onerror = null;
-                                                        }
-                                                    }}
-                                                />
+                                        <div className="channel-info">
+                                            <h4>{account.username}</h4>
+                                            <div className="channel-stats">
+                                                <span>{account.follower_count} followers</span>
+                                                <span>•</span>
+                                                <span>{account.video_count} videos</span>
                                             </div>
-                                            <div className="channel-info">
-                                                <h4>{account.username}</h4>
-                                                <div className="channel-stats">
-                                                    <span>{account.follower_count} followers</span>
-                                                    <span>•</span>
-                                                    <span>{account.video_count} videos</span>
-                                                </div>
-                                            </div>
-                                            <button
-                                                className="remove-channel-btn"
-                                                onClick={() => handleRemoveTikTokAccount(account.id)}
-                                                aria-label="Remove account"
-                                            >
-                                                <FaTrash className="remove-icon" />
-                                            </button>
                                         </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p>No TikTok accounts connected</p>
-                            )}
-                            <button
-                                className="tiktok-connect-button"
-                                onClick={handleConnectTikTok}
-                                disabled={isLoading}
-                            >
-                                <FaTiktok className="tiktok-icon" />
-                                Connect TikTok Account
-                            </button>
-                        </div>
+                                        <button
+                                            className="remove-channel-btn"
+                                            onClick={() => handleRemoveTikTokAccount(account.id)}
+                                            aria-label="Remove account"
+                                        >
+                                            <FaTrash className="remove-icon" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p>No TikTok accounts connected</p>
+                        )}
+                        <button
+                            className="tiktok-connect-button"
+                            onClick={handleConnectTikTok}
+                            disabled={isLoading}
+                        >
+                            <FaTiktok className="tiktok-icon" />
+                            Connect TikTok Account
+                        </button>
                     </div>
                 </div>
             </div>

@@ -149,4 +149,64 @@ export async function getUserChannels(req, res) {
             details: error.message 
         });
     }
+}
+
+export async function getAuthUrl(req, res) {
+    try {
+        console.log('\n=== Getting YouTube Auth URL ===');
+        const authUrl = youtubeService.generateAuthUrl();
+        console.log('Generated auth URL successfully');
+        console.log('=== Get Auth URL Complete ===\n');
+        res.json({ authUrl });
+    } catch (error) {
+        console.error('\n=== Get Auth URL Failed ===');
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack
+        });
+        res.status(500).json({ 
+            error: 'Failed to generate auth URL',
+            details: error.message 
+        });
+    }
+}
+
+export async function getChannelStats(req, res) {
+    try {
+        const { channelId } = req.params;
+        const { userId } = req.query;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'User ID is required' });
+        }
+
+        const statistics = await youtubeService.updateChannelStatistics(channelId, userId);
+        res.json(statistics);
+    } catch (error) {
+        console.error('Error getting channel statistics:', error);
+        res.status(500).json({ 
+            error: 'Failed to get channel statistics',
+            details: error.message 
+        });
+    }
+}
+
+export async function clearChannelStats(req, res) {
+    try {
+        const { channelId } = req.params;
+        const { userId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'User ID is required' });
+        }
+
+        youtubeService.clearChannelStatisticsCache(channelId, userId);
+        res.json({ message: 'Channel statistics cache cleared successfully' });
+    } catch (error) {
+        console.error('Error clearing channel statistics cache:', error);
+        res.status(500).json({ 
+            error: 'Failed to clear channel statistics cache',
+            details: error.message 
+        });
+    }
 } 

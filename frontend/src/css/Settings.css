@@ -295,10 +295,12 @@ input:checked + .slider:before {
 @media (max-width: 1024px) {
     .password-requirements {
         position: absolute;
+        right: 0;
         left: 0;
         top: 100%;
         width: 100%;
         margin-top: 0.5rem;
+        transform: none;
     }
 }
 
@@ -540,9 +542,9 @@ input:checked + .slider:before {
 /* Password Requirements */
 .password-requirements {
     position: absolute;
-    left: calc(100% + 3rem);
+    right: -20px;
     top: 0;
-    width: 450px;
+    width: 300px;
     z-index: 10;
     padding: 0;
     background-color: var(--color-card-bg);
@@ -553,6 +555,19 @@ input:checked + .slider:before {
     opacity: 0;
     transition: all 0.3s ease-in-out;
     box-shadow: var(--shadow-md);
+    transform: translateX(100%);
+}
+
+@media (max-width: 1024px) {
+    .password-requirements {
+        position: absolute;
+        right: 0;
+        left: 0;
+        top: 100%;
+        width: 100%;
+        margin-top: 0.5rem;
+        transform: none;
+    }
 }
 
 .password-requirements.visible {

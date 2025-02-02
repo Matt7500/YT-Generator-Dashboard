@@ -1,15 +1,61 @@
 import { supabase } from '../config/supabase.js';
 import fetch from 'node-fetch';
+import { logger } from '../utils/logger.js';
 
 const apiBase = 'https://www.googleapis.com/youtube/v3';
 const clientId = process.env.YOUTUBE_CLIENT_ID;
 const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
 
-console.log('YouTube Service initialized with:', {
-  apiBase,
-  hasClientId: !!clientId,
-  hasClientSecret: !!clientSecret
+logger.info('YouTube Service initialized with:', {
+    apiBase,
+    hasClientId: !!clientId,
+    hasClientSecret: !!clientSecret
 });
+
+// Cache keys and TTLs
+const CACHE_KEYS = {
+    CHANNEL_STATS: (channelId) => `youtube:stats:${channelId}`,
+    CHANNEL_INFO: (channelId) => `youtube:info:${channelId}`,
+    USER_CHANNELS: (userId) => `youtube:user:${userId}:channels`
+};
+
+const CACHE_TTL = {
+    STATS: 3600,        // 1 hour
+    CHANNEL_INFO: 7200, // 2 hours
+    USER_LIST: 1800     // 30 minutes
+};
+
+export function generateAuthUrl() {
+    console.log('\n=== Generating YouTube Auth URL ===');
+    const redirectUri = `${process.env.FRONTEND_URL}/auth/youtube/callback`;
+    
+    const params = {
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        response_type: 'code',
+        scope: 'https://www.googleapis.com/auth/youtube.readonly',
+        access_type: 'offline',
+        prompt: 'consent',
+        include_granted_scopes: 'true',
+        state: 'youtube_auth'
+    };
+
+    console.log('OAuth parameters:', {
+        clientId: clientId?.substring(0, 10) + '...',
+        redirectUri,
+        scope: params.scope
+    });
+
+    const queryString = Object.entries(params)
+        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join('&');
+
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${queryString}`;
+    console.log('Generated auth URL:', authUrl);
+    console.log('=== Auth URL Generation Complete ===\n');
+
+    return authUrl;
+}
 
 export async function exchangeCodeForTokens(code, redirectUri) {
   console.log('\n=== Starting Token Exchange ===');
@@ -252,121 +298,104 @@ export async function saveChannelToDatabase(channelData, userId, tokens) {
   }
 }
 
+export async function getChannelStatistics(channelId, userId) {
+    try {
+        // Get channel data directly from database
+        const { data: channel, error } = await supabase
+            .from('youtube_accounts')
+            .select('subscriber_count, video_count, view_count, updated_at')
+            .eq('channel_id', channelId)
+            .single();
+
+        if (error) {
+            logger.error('Error fetching channel statistics:', error);
+            throw error;
+        }
+
+        if (!channel) {
+            throw new Error('Channel not found');
+        }
+
+        return {
+            subscriberCount: channel.subscriber_count,
+            viewCount: channel.view_count,
+            videoCount: channel.video_count,
+            lastUpdated: channel.updated_at
+        };
+    } catch (error) {
+        logger.error('Error getting channel statistics:', error);
+        throw error;
+    }
+}
+
 export async function updateChannelStatistics(channelId, userId) {
-  console.log('\n=== Updating Channel Statistics ===');
-  console.log('Channel ID:', channelId);
-  console.log('User ID:', userId);
+    try {
+        // Get the channel from database
+        const { data: channel, error: fetchError } = await supabase
+            .from('youtube_accounts')
+            .select('refresh_token')
+            .eq('channel_id', channelId)
+            .single();
 
-  try {
-    // Get the channel's current access token
-    const { data: channel, error: channelError } = await supabase
-      .from('youtube_accounts')
-      .select('*')
-      .eq('channel_id', channelId)
-      .eq('user_id', userId)
-      .single();
+        if (fetchError || !channel) {
+            throw new Error('Channel not found');
+        }
 
-    if (channelError) {
-      console.error('Error fetching channel:', channelError);
-      throw channelError;
+        // Get fresh data from YouTube API
+        const accessToken = await getValidAccessToken(channel.refresh_token);
+        const youtubeData = await getUserChannel(accessToken);
+
+        // Update database with new statistics
+        const { data: updatedChannel, error: updateError } = await supabase
+            .from('youtube_accounts')
+            .update({
+                subscriber_count: parseInt(youtubeData.statistics?.subscriberCount) || 0,
+                video_count: parseInt(youtubeData.statistics?.videoCount) || 0,
+                view_count: parseInt(youtubeData.statistics?.viewCount) || 0,
+                updated_at: new Date().toISOString()
+            })
+            .eq('channel_id', channelId)
+            .select()
+            .single();
+
+        if (updateError) {
+            throw updateError;
+        }
+
+        return {
+            subscriberCount: updatedChannel.subscriber_count,
+            viewCount: updatedChannel.view_count,
+            videoCount: updatedChannel.video_count,
+            lastUpdated: updatedChannel.updated_at
+        };
+    } catch (error) {
+        logger.error('Error updating channel statistics:', error);
+        throw error;
     }
+}
 
-    // Check if token needs refresh
-    const tokenExpiry = new Date(channel.token_expiry);
-    let accessToken = channel.access_token;
+export async function getUserChannels(userId) {
+    try {
+        const { data: channels, error } = await supabase
+            .from('youtube_accounts')
+            .select('*')
+            .eq('user_id', userId);
 
-    if (tokenExpiry <= new Date()) {
-      console.log('Token expired, refreshing...');
-      const newTokens = await refreshAccessToken(channel.refresh_token);
-      accessToken = newTokens.access_token;
+        if (error) {
+            logger.error('Error fetching user channels:', error);
+            throw error;
+        }
 
-      // Update tokens in database
-      const { error: updateError } = await supabase
-        .from('youtube_accounts')
-        .update({
-          access_token: newTokens.access_token,
-          refresh_token: newTokens.refresh_token,
-          token_expiry: new Date(Date.now() + (newTokens.expires_in * 1000)).toISOString()
-        })
-        .eq('channel_id', channelId)
-        .eq('user_id', userId);
-
-      if (updateError) {
-        console.error('Error updating tokens:', updateError);
-        throw updateError;
-      }
+        return channels;
+    } catch (error) {
+        logger.error('Error getting user channels:', error);
+        throw error;
     }
-
-    // Fetch fresh channel data
-    const channelData = await getUserChannel(accessToken);
-
-    // Update channel statistics
-    const { data: updatedChannel, error: updateError } = await supabase
-      .from('youtube_accounts')
-      .update({
-        subscriber_count: parseInt(channelData.statistics?.subscriberCount) || 0,
-        video_count: parseInt(channelData.statistics?.videoCount) || 0,
-        view_count: parseInt(channelData.statistics?.viewCount) || 0,
-        updated_at: new Date().toISOString()
-      })
-      .eq('channel_id', channelId)
-      .eq('user_id', userId)
-      .select()
-      .single();
-
-    if (updateError) {
-      console.error('Error updating channel statistics:', updateError);
-      throw updateError;
-    }
-
-    console.log('Channel statistics updated:', {
-      id: updatedChannel.id,
-      channelId: updatedChannel.channel_id,
-      subscriberCount: updatedChannel.subscriber_count,
-      videoCount: updatedChannel.video_count,
-      viewCount: updatedChannel.view_count
-    });
-    console.log('=== Channel Statistics Update Complete ===\n');
-
-    return updatedChannel;
-  } catch (error) {
-    console.error('\n=== Channel Statistics Update Failed ===');
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      hint: error.hint
-    });
-    throw error;
-  }
 }
 
-export async function disconnectChannel(channelId, userId) {
-  // Implementation for disconnecting a channel
-  // Add your code here
+// Add a function to manually clear cache for a channel
+export function clearChannelStatisticsCache(channelId, userId) {
+  const cacheKey = `stats:${channelId}:${userId}`;
+  cacheService.delete(cacheKey);
+  console.log('Cleared statistics cache for channel:', channelId);
 }
-
-export async function getUserYouTubeAccounts(userId) {
-  // Implementation for getting user's YouTube accounts
-  // Add your code here
-}
-
-export async function addYouTubeAccount(userId, accountData) {
-  // Implementation for adding a YouTube account
-  // Add your code here
-}
-
-export async function updateYouTubeAccount(accountId, updates) {
-  // Implementation for updating a YouTube account
-  // Add your code here
-}
-
-export async function deleteYouTubeAccount(accountId) {
-  // Implementation for deleting a YouTube account
-  // Add your code here
-}
-
-export async function getYouTubeAccount(accountId) {
-  // Implementation for getting a YouTube account
-  // Add your code here
-} 

@@ -33,32 +33,11 @@ const Sidebar = ({ isOpen, onClose }) => {
                         Dashboard
                     </Link>
                     <Link 
-                        to="/story-writer" 
-                        className={`nav-item ${location.pathname === '/story-writer' ? 'active' : ''}`}
-                        onClick={handleLinkClick}
-                    >
-                        Story Writer
-                    </Link>
-                    <Link 
                         to="/stories" 
                         className={`nav-item ${location.pathname === '/stories' ? 'active' : ''}`}
                         onClick={handleLinkClick}
                     >
                         Stories
-                    </Link>
-                    <Link 
-                        to="/channels" 
-                        className={`nav-item ${location.pathname === '/channels' ? 'active' : ''}`}
-                        onClick={handleLinkClick}
-                    >
-                        Channels
-                    </Link>
-                    <Link 
-                        to="/analytics" 
-                        className={`nav-item ${location.pathname === '/analytics' ? 'active' : ''}`}
-                        onClick={handleLinkClick}
-                    >
-                        Analytics
                     </Link>
                     <Link 
                         to="/settings" 

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { userAuth } from '../contexts/AuthContext';
 import supabase from '../clients/supabaseClient';
-import { FaCog, FaVideo, FaYoutube, FaTiktok, FaPlus, FaTimes } from 'react-icons/fa';
+import { FaCog, FaVideo, FaYoutube, FaTiktok, FaPlus, FaTimes, FaSync } from 'react-icons/fa';
 import '../css/Dashboard.css';
 import NewStoryModal from '../components/NewStoryModal';
+import { useLayout } from '../contexts/LayoutContext';
+import { toast } from 'react-hot-toast';
 
 const Dashboard = () => {
     const [channels, setChannels] = useState([]);
@@ -15,10 +17,18 @@ const Dashboard = () => {
     const { session } = userAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedChannelId, setSelectedChannelId] = useState(null);
+    const { PageWrapper } = useLayout();
 
     useEffect(() => {
-        loadChannels();
-    }, []);
+        if (session?.user?.id) {
+            console.log('Session details:', {
+                userId: session.user.id,
+                email: session.user.email,
+                role: session.user.role
+            });
+            loadChannels();
+        }
+    }, [session?.user?.id]);
 
     // Preload images when channels are loaded
     useEffect(() => {
@@ -60,42 +70,88 @@ const Dashboard = () => {
             setIsLoading(true);
             setError(null);
 
+            console.log('Loading channels for user:', {
+                userId: session?.user?.id,
+                sessionStatus: session?.user ? 'active' : 'inactive'
+            });
+
+            // Get channels from database
             const { data: channels, error } = await supabase
                 .from('youtube_accounts')
                 .select('*')
                 .eq('user_id', session?.user?.id);
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase query error:', {
+                    error: error.message,
+                    code: error.code,
+                    details: error.details
+                });
+                throw error;
+            }
 
-            // Update stats for each channel
-            const updatedChannels = await Promise.all(channels.map(async (channel) => {
-                try {
-                    const response = await fetch(`${import.meta.env.VITE_API_URL}/youtube/channels/${channel.channel_id}/stats`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ userId: session?.user?.id })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`Failed to update stats for channel ${channel.channel_id}`);
-                    }
-                    
-                    const updatedChannel = await response.json();
-                    return updatedChannel;
-                } catch (err) {
-                    console.error('Error updating channel stats:', err);
-                    return channel; // Return original channel data if update fails
-                }
-            }));
+            console.log('Channels loaded:', {
+                count: channels?.length || 0,
+                channels: channels?.map(ch => ({
+                    id: ch.channel_id,
+                    name: ch.channel_name,
+                    stats: {
+                        subscribers: ch.subscriber_count,
+                        views: ch.view_count,
+                        videos: ch.video_count
+                    },
+                    lastUpdated: ch.updated_at
+                }))
+            });
 
-            setChannels(updatedChannels || []);
+            setChannels(channels || []);
         } catch (error) {
             console.error('Error loading channels:', error);
             setError('Failed to load channels');
+            toast.error('Failed to load channels');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // Add a function to check if stats need updating
+    const needsStatsUpdate = (lastUpdated) => {
+        if (!lastUpdated) return true;
+        const updateInterval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        const lastUpdateTime = new Date(lastUpdated).getTime();
+        return Date.now() - lastUpdateTime > updateInterval;
+    };
+
+    // Modify the refresh stats handler to include cooldown check
+    const handleRefreshStats = async (channelId) => {
+        try {
+            const channel = channels.find(ch => ch.channel_id === channelId);
+            
+            if (!needsStatsUpdate(channel?.updated_at)) {
+                toast.info('Statistics were updated recently. Please try again later.');
+                return;
+            }
+
+            const apiUrl = import.meta.env.VITE_API_URL;
+            const response = await fetch(
+                `${apiUrl}/youtube/channels/${channelId}/statistics?userId=${session?.user?.id}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to refresh statistics');
+            }
+
+            await loadChannels(); // Reload all channels to get updated data
+            toast.success('Statistics updated successfully');
+        } catch (error) {
+            console.error('Error refreshing statistics:', error);
+            toast.error('Failed to refresh statistics');
         }
     };
 
@@ -184,16 +240,18 @@ const Dashboard = () => {
                         <h2>{channel.channel_name}</h2>
                     </div>
                 </div>
-                <div className={`platform-badge ${channel.platform || 'youtube'}`}>
-                    {channel.platform === 'tiktok' ? (
-                        <>
-                            <FaTiktok /> TikTok
-                        </>
-                    ) : (
-                        <>
-                            <FaYoutube /> YouTube
-                        </>
-                    )}
+                <div className="channel-header-actions">
+                    <div className={`platform-badge ${channel.platform || 'youtube'}`}>
+                        {channel.platform === 'tiktok' ? (
+                            <>
+                                <FaTiktok /> TikTok
+                            </>
+                        ) : (
+                            <>
+                                <FaYoutube /> YouTube
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
             <div className="channel-stats">
@@ -288,31 +346,25 @@ const Dashboard = () => {
     );
 
     return (
-        <div className="dashboard">
-            <div className="sidebar-spacer"></div>
-            <div className="dashboard-content">
-                <div className="dashboard-header">
-                    <p className="subtitle">Manage your channels and content</p>
-                </div>
+        <PageWrapper>
 
-                <div className="dashboard-cards">
-                    {isLoading ? (
-                        <div className="loading-state">Loading channels...</div>
-                    ) : error ? (
-                        <div className="error-state">{error}</div>
-                    ) : (
-                        <div className="channel-grid">
-                            {channels.length > 0 ? (
-                                <>
-                                    {channels.map(renderChannelCard)}
-                                    {channels.length < 6 && renderConnectCard()}
-                                </>
-                            ) : (
-                                renderConnectCard()
-                            )}
-                        </div>
-                    )}
-                </div>
+            <div className="dashboard-cards">
+                {isLoading ? (
+                    <div className="loading-state">Loading channels...</div>
+                ) : error ? (
+                    <div className="error-state">{error}</div>
+                ) : (
+                    <div className="channel-grid">
+                        {channels.length > 0 ? (
+                            <>
+                                {channels.map(renderChannelCard)}
+                                {channels.length < 6 && renderConnectCard()}
+                            </>
+                        ) : (
+                            renderConnectCard()
+                        )}
+                    </div>
+                )}
             </div>
             {showModal && renderPlatformModal()}
 
@@ -321,7 +373,7 @@ const Dashboard = () => {
                 onClose={handleCloseStoryModal}
                 channelId={selectedChannelId}
             />
-        </div>
+        </PageWrapper>
     );
 };
 
