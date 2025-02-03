@@ -1,5 +1,90 @@
 import { FixedSizeQueue } from '../../utils/utils.js';
 import OpenAI from 'openai';
+import { readFile } from 'fs/promises';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import readline from 'readline';
+
+// Load environment variables
+dotenv.config();
+
+// Helper functions
+function createReadlineInterface() {
+    return readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+}
+
+function formatScenes(inputString) {
+    try {
+        // Clean up the input string
+        // Remove markdown code block markers and 'json' language identifier
+        inputString = inputString.replace(/```json\s*|\s*```/g, '');
+        
+        // Remove any leading/trailing whitespace
+        inputString = inputString.trim();
+        
+        // Try to parse the input as JSON
+        const scenes = JSON.parse(inputString);
+        
+        const formattedScenes = [];
+        
+        // Process each scene in the JSON array
+        for (const scene of scenes) {
+            const sceneNumber = scene.scene_number;
+            const sceneBeat = scene.scene_beat;
+            
+            if (sceneNumber != null && sceneBeat) {
+                formattedScenes.push(`${sceneBeat.trim()}`);
+            }
+        }
+        
+        if (formattedScenes.length === 0) {
+            console.log("Warning: No scenes were parsed from the JSON");
+            return null;
+        }
+            
+        return formattedScenes;
+        
+    } catch (e) {
+        if (e instanceof SyntaxError) {
+            console.log(`Warning: Failed to parse JSON (${e.toString()})`);
+            
+            try {
+                // Try to clean up the JSON string more aggressively
+                // Remove all newlines and extra spaces between JSON objects
+                let cleanedInput = inputString.replace(/\s+/g, ' ');
+                cleanedInput = cleanedInput.replace(/,\s*]/g, ']');
+                
+                const scenes = JSON.parse(cleanedInput);
+                const formattedScenes = [];
+                
+                for (const scene of scenes) {
+                    const sceneNumber = scene.scene_number;
+                    const sceneBeat = scene.scene_beat;
+                    
+                    if (sceneNumber != null && sceneBeat) {
+                        formattedScenes.push(`${sceneBeat.trim()}`);
+                    }
+                }
+                
+                if (formattedScenes.length === 0) {
+                    console.log("Warning: No scenes were parsed from the cleaned JSON");
+                    return null;
+                }
+                    
+                return formattedScenes;
+                
+            } catch (e) {
+                console.log(`Error: Failed to parse JSON even after cleanup: ${e.toString()}`);
+                return null;
+            }
+        }
+        return null;
+    }
+}
 
 let oaiClient = null;
 let orClient = null;
@@ -10,10 +95,30 @@ const settingsObj = {
     OR_API_KEY: process.env.OPENROUTER_API_KEY,
     OPENAI_MODEL: process.env.OPENAI_MODEL,
     OPENROUTER_MODEL_REASONING: process.env.OPENROUTER_MODEL_REASONING,
-    TITLES_FT_MODEL: process.env.TITLES_FT_MODEL
+    TITLES_FT_MODEL: process.env.TITLES_FT_MODEL,
+    STORY_PROFILE: 'Horror'
 };
 
+
 const previousScenes = new FixedSizeQueue(4);
+
+async function loadStoryProfiles() {
+    try {
+        // Get the directory path of the current module
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
+        
+        // Read and parse the profiles.json file
+        const profilesPath = join(__dirname, 'profiles.json');
+        const profilesData = await readFile(profilesPath, 'utf8');
+        const profiles = JSON.parse(profilesData);
+        
+        return profiles.categories;
+    } catch (error) {
+        console.error('Error loading story profiles:', error);
+        throw error;
+    }
+}
 
 async function initializeClients() {
     /**
@@ -58,33 +163,25 @@ async function storyIdeas() {
     // Get the story profile name from the settings
     const storyProfileName = settingsObj.STORY_PROFILE;
     
-    // Get the corresponding story profile from the MongoDB collection
-    let storyProfile;
+    // Get the corresponding story profile
     try {
         const allStoryProfiles = await loadStoryProfiles();
-        storyProfile = allStoryProfiles[storyProfileName];
+        const storyProfile = allStoryProfiles.find(profile => profile.name === storyProfileName);
         
         if (!storyProfile) {
-            console.log(`Error: Story profile '${storyProfileName}' not found in the video-types collection`);
+            console.log(`Error: Story profile '${storyProfileName}' not found`);
             return null;
         }
-    } catch (e) {
-        console.log(`Error loading story profiles: ${e.toString()}`);
-        return null;
-    }
 
-    if (settingsObj.USE_REDDIT) {
-        return findLongPost(storyProfile);
-    } else if (settingsObj.USE_FINE_TUNE) {
+        // Select a random prompt
         const prompt = storyProfile.prompts[Math.floor(Math.random() * storyProfile.prompts.length)];
-        console.log(`\n\n${prompt}\n\n`);
+        console.log(`\n\nUsing prompt: ${prompt}\n\n`);
         
         const message = await oaiClient.chat.completions.create({
             model: process.env.OPENAI_MODEL,
             messages: [
                 {
                     role: "system",
-
                     content: storyProfile.system_prompt
                 },
                 {
@@ -95,19 +192,10 @@ async function storyIdeas() {
         });
         
         return message.choices[0].message.content;
-    } else {
-        const prompt = storyProfile.prompts[Math.floor(Math.random() * storyProfile.prompts.length)];
-        const message = await oaiClient.chat.completions.create({
-            model: process.env.OPENAI_MODEL,
-            messages: [
-                {
-                    role: "user",
-                    content: prompt
-                }
-            ]
-        });
 
-        return message.choices[0].message.content;
+    } catch (e) {
+        console.log(`Error generating story idea: ${e.toString()}`);
+        return null;
     }
 }
 
@@ -183,6 +271,41 @@ async function createOutline(idea, num = 12) {
 
     console.log("Failed to create outline after 5 attempts.");
     return null;
+}
+
+async function characters(outline) {
+    let retries = 0;
+    while (retries < 10) {
+        try {
+            const message = await orClient.chat.completions.create({
+                model: settingsObj.OR_MODEL,
+                max_tokens: 4000,
+                temperature: 0.7,
+                messages: [
+
+                    {
+                        role: "user", 
+                        content: `## Instructions
+                        
+                        Using the given story outline, write short character descriptions for all the characters in the story in the following format:
+                        <character name='(Character Name)' aliases='(Character Alias)' pronouns='(Character Pronouns)'>(Character description)</character>
+
+                        The character alias is what the other characters in the story will call that character in the story such as their first name.
+                        For the Protagonist's alias you must create a name that other characters will call them in the story.
+                        The character pronouns are the pronouns that the character uses for themselves.
+                        The character description must only describe their appearance and their personality DO NOT write what happens to them in the story.
+                        Only return the character descriptions without any comments.
+        
+                        ## Outilne:\n\n${outline}`
+                    }
+                ]
+            });
+            return message.choices[0].message.content;
+        } catch (e) {
+            console.log(`Error: ${e}. Retrying...`);
+            retries++;
+        }
+    }
 }
 
 async function createTitle(storyText, maxRetries = 10) {
@@ -268,4 +391,69 @@ async function createTitle(storyText, maxRetries = 10) {
     }
 }
 
-export { initializeClients, storyIdeas, createOutline, createTitle };
+async function testLoadProfiles() {
+    try {
+        const profiles = await loadStoryProfiles();
+        console.log('Available Categories:');
+        profiles.forEach(profile => {
+            console.log(`- ${profile.name} (${profile.prompts.length} prompts)`);
+        });
+        console.log('\nFirst prompt from each category:');
+        profiles.forEach(profile => {
+            console.log(`\n${profile.name}:`);
+            console.log(profile.prompts[0].substring(0, 150) + '...');
+        });
+    } catch (error) {
+        console.error('Test failed:', error);
+    }
+}
+
+async function testFullPipeline() {
+    try {
+        // 1. Initialize clients
+        console.log('\n1. Initializing clients...');
+        await initializeClients();
+
+        // 2. Load profiles
+        console.log('\n2. Loading story profiles...');
+        const profiles = await loadStoryProfiles();
+        console.log('Available Categories:');
+        profiles.forEach(profile => {
+            console.log(`- ${profile.name} (${profile.prompts.length} prompts)`);
+        });
+
+        // 3. Generate story idea
+        console.log('\n3. Generating story idea...');
+        const storyIdea = await storyIdeas();
+        console.log('\nGenerated Story Idea:');
+        console.log(storyIdea);
+
+        // 4. Create outline
+        console.log('\n4. Creating story outline...');
+        const outline = await createOutline(storyIdea);
+        console.log('\nGenerated Outline:');
+        console.log(outline);
+
+        // 5. Generate characters
+        console.log('\n5. Generating characters...');
+        const chars = await characters(outline);
+        console.log('\nGenerated Characters:');
+        console.log(chars);
+
+        // 6. Create title
+        console.log('\n6. Creating title...');
+        const title = await createTitle(storyIdea);
+        console.log('\nFinal Title:');
+        console.log(title);
+
+    } catch (error) {
+        console.error('Pipeline test failed:', error);
+    }
+}
+
+// Run test if file is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+    testFullPipeline();
+}
+
+export { initializeClients, storyIdeas, createOutline, createTitle, characters };
